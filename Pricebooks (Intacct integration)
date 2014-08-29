@@ -1,0 +1,65 @@
+trigger IntacctProduct on Product2 (after insert, after update) {
+
+//Query for the standard pricebook - viable
+ List<pricebook2> pbs = new List<pricebook2>();
+ pbs = [select id, name from pricebook2 where isStandard=true];
+ Pricebook2 pb = new Pricebook2();
+ pb = pbs[0];
+//system.debug('This is the standard pricelist: '+ pb);
+
+//Capture current Intacct_company in the user table based on current system user  - viable
+List<User> donald = new List<User>();
+donald =[select id, intacct_company_id__c from user where intacct_company_id__c != null and id=:userinfo.getuserid()];
+User don1 = new User();
+don1 = donald[0];
+//system.debug('This is the current company: '+ don1);
+
+List <Product2> prod1 = new List<Product2>();
+prod1= [select id from Product2 where session_company__c != null and session_company__c=:don1.intacct_company_id__c and isactive = true];
+//Product2 prod2 = new Product2();
+//prod2 = prod1[0];
+system.debug('Here is the product list: ' + prod1);
+
+//Create pricebook entry to link standard pricebook and the product
+for (Product2 p1: prod1){
+    pricebookentry e = new Pricebookentry();
+    e.pricebook2id = pb.id;
+    e.product2id = p1.id;
+    e.unitprice = 1.0;
+    e.isactive=true;
+    e.UseStandardPrice= false;
+
+    try{
+             upsert e;
+        }catch (DmlException e_1){
+             System.debug(e_1.getMessage());
+        }
+}
+
+//Create custom pricebook based on current user intacct_company_id__c
+List<pricebook2> pbs2 = new List<pricebook2>();
+pbs2 = [select id from Pricebook2 where name =:don1.intacct_company_id__c and isactive = true];
+Pricebook2 pb2 = new Pricebook2();
+pb2 = pbs2[0];
+pb2.name = don1.intacct_company_id__c ;
+pb2.isActive = true;
+upsert pb2;
+//system.debug('This is the custom pricebook: '+ pb2);
+
+for (Product2 p2: prod1){
+    pricebookentry e2 = new Pricebookentry();
+    e2.pricebook2id = pb2.id;
+    e2.product2id = p2.id;
+    e2.unitprice = 1.0;
+    e2.isactive=true;
+    e2.UseStandardPrice= false;
+
+  //system.debug('Adding products to custom pricebook: '+ e2);
+        try{
+             upsert e2;
+        }catch (DmlException e_2){
+             System.debug(e_2.getMessage());
+        }
+
+    }
+ }
