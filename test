@@ -1,0 +1,1485 @@
+public class TenantManagementExtension 
+{ 
+
+    public Tenant_User__c tenantUser {get; set;}
+        
+    public String request {get; set;}
+    public Integer newVer {get; set;}
+    public Integer newSeq {get; set;}
+    public Integer baseVersion {get; set;}
+    public Integer wdayVersion {get; set;}
+    public Id dataCenter {get; set;}
+    public String dataCenterName {get; set;}
+    public String type {get; set;}
+    public String typeName {get; set;}
+    public String subType {get; set;}
+    public Id masterURL {get; set;}
+    public String newTenant {get; set;}
+    public String refreshSrc {get; set;}
+    public List<Tenant__c> masterTenants = new List<Tenant__c>();
+    public List<Tenant__c> otherSourceTenants = new List<Tenant__c>();
+    public Map<string, Tenant__c> masterMap = new Map<string, Tenant__c>();
+    public Map<string, Tenant__c> otherMap = new Map<string, Tenant__c>();
+    public Map<string, Tenant__c> userTenantMap = new Map<string, Tenant__c>();
+    public Map<string, List<string>> tenantTypeNameMap = new Map<string, List<string>>();
+    public Map<string, Tenant_User__c> userMap = new Map<string, Tenant_User__c>();
+    List<String> delTenants = new List<String>();
+    public Map<string, string> masterPwdMap = new Map<string, string>();
+    public Map<string, string> masterPwdMap2 = new Map<string, string>();
+    public List<String> masterTenants2 = new List<String>();
+    
+    public Map<string, Map<Integer, Integer>> tenantTypeVerSeqMap = new Map<string, Map<Integer, Integer>>();
+    public Map<string, Map<String, Integer>> tenantSTypeVerSeqMap = new Map<String, Map<String, Integer>>();
+    public List<Tenant__c> activeTenants = new List<Tenant__c>();
+    public List<Tenant__c> inactiveTenants = new List<Tenant__c>();
+    public List<Tenant__c> pendingTenants = new List<Tenant__c>();
+    public List<Tenant__c> otherActiveTenants = new List<Tenant__c>();
+    public List<Tenant__c> otherInactiveTenants = new List<Tenant__c>();
+    public List<Tenant__c> otherPendingTenants = new List<Tenant__c>();
+    public List<User_Tenant_Automation_Request__c> pendingRequests = new List<User_Tenant_Automation_Request__c>();
+    public List<User_Tenant_Automation_Request__c> otherPendingRequests = new List<User_Tenant_Automation_Request__c>();
+    public Map<String, String> tenantStypeMap = new Map<String, String>();
+    public Set<string> sourceTenants = new Set<String>();
+    public Set<Tenant__c> sourceTenantsList = new Set<Tenant__c>();
+    public Map<string, Tenant__c> sourceTenantsMap = new Map<String, Tenant__c>();
+    public Map<Id, String> sourceTenantsIdMap = new Map<Id, String>();
+    public Tenant__c otherSourceTenant = new Tenant__c();
+    public Map<Id, String> userTenantIdMap = new Map<Id,String>();
+    public Map<Id, Tenant__c> userTenantMap2 = new Map<Id, Tenant__c>();
+    
+    public String requestType {get; set;} //Added for Integration 
+    public User_Tenant_Automation_Request__c star {get;set;}
+    public Boolean reqDateEditable {get; set;}
+    public String otherId {get; set;}
+    
+    public TenantManagementExtension(){}
+     
+    public TenantManagementExtension(ApexPages.StandardController stdController){
+        tenantUser = (Tenant_User__c) stdController.getRecord();
+            
+    }
+    
+    public void initPreSalesTenant()
+    {
+        star = new User_Tenant_Automation_Request__c(); 
+        star.Request_Number__c='STAR'+WTA_Helper.getNextSTARRequestNumber();
+    }
+    
+    public Boolean userIsAdmin
+    {          
+        get{ 
+            Boolean iA;
+            if(userIsAdmin == null)
+            {                
+                //tenantUser = [select Admin__c, id, User__c, User__r.firstname, User__r.lastname, Status__c, Tenant_Prefix__c, Maximum_Number_of_Tenants__c, Number_of_Tenants_Available__c from Tenant_User__c where id=:tenantUser.id];
+                tenantUser = [select Admin__c, id, User__c, User__r.firstname, User__r.lastname, Status__c, Tenant_Prefix__c, Maximum_Number_of_Tenants__c, Number_of_Tenants_Available__c from Tenant_User__c where id=:ApexPages.currentPage().getParameters().get('id')];              
+                iA = tenantUser.Admin__c;
+                System.debug('*** tenantUser: ' + tenantUser);
+            }
+            return iA;
+        }
+        set;                
+    }
+
+    public Boolean userIsMaster
+    {          
+        get
+        { 
+            Boolean iM = false;
+            if(userIsMaster == null)
+            {                
+                Tenant_User__c master = new Tenant_User__c();
+                List<Tenant_User__c> ts = new List<Tenant_User__c>([select id, User__c from Tenant_User__c where Master_Profile__c = true limit 1]);              
+                if(ts.size()>0){
+                    master = ts[0];}
+                if(master.User__c == UserInfo.getUserId()){
+                    iM = true; }
+            }
+            return iM;
+        }
+        set;                
+    }
+
+    
+    
+    public Tenant_User__c currUser
+    {
+        get
+        {
+            if(currUser == null)
+            {  
+                currUser = getCurrentUser(); 
+                if(currUser == null){
+                    return null; }
+                else{
+                    return currUser; }
+            }
+            else{
+                return currUser;}
+        }
+        set;    
+    }
+
+ 
+    
+    public Tenant_User__c getCurrentUser()
+    {
+        try{
+            Tenant_User__c currUser = new Tenant_User__c();
+            currUser = [select id, User__c, User__r.firstname, User__r.lastname, Status__c, Tenant_Prefix__c, Maximum_Number_of_Tenants__c, Number_of_Tenants_Available__c, Admin__c from Tenant_User__c where user__c =: UserInfo.getUserId() and master_profile__c = false limit 1];
+            //currUser = [select id, User__c, User__r.firstname, User__r.lastname, Status__c, Tenant_Prefix__c, Maximum_Number_of_Tenants__c, Number_of_Tenants_Available__c, Admin__c from Tenant_User__c where user__c =: userParam limit 1];
+            tenantUser = currUser;                  
+        }      
+        catch (Exception e){    
+        }
+        return tenantUser;    
+    }
+    
+    public Tenant_User__c OtherTenantUser
+    {
+        get
+        {
+            if(otherTenantUser == null)
+            {
+                 List<Tenant_User__c> users = new List<Tenant_User__c>();
+                 System.debug('*** Id Param: ' + ApexPages.currentPage().getParameters().get('id'));
+                 users = [select id, User__c, User__r.firstname, User__r.lastname, Status__c, Tenant_Prefix__c, Maximum_Number_of_Tenants__c, Number_of_Tenants_Available__c, Admin__c from Tenant_User__c where id =: ApexPages.currentPage().getParameters().get('oid')]; 
+                 System.debug('*** users ' + Users);
+                 if(users.size()>0){
+                     otherTenantUser = users[0]; }
+            }    
+            return otherTenantUser;             
+        }      
+        set;   
+    }
+
+    public PageReference launchHomePage()
+    {     
+        PageReference t;            
+        try
+        { 
+            tenantUser = currUser;
+            
+            if(tenantUser <> null)
+            {
+                System.debug('*** ' + tenantUser);
+                Id tenantUserId = tenantUser.id;
+                string s;
+                if(tenantUserId <> null){
+                    s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementHome?id=' + tenantUserId; }
+                else{
+                    s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementHome'; }
+                t = new PageReference(s);    
+                t.setRedirect(true);   
+            }    
+        }
+        catch (Exception e){}                                                          
+        return t;           
+    }
+
+
+    public string userParam{
+        get{
+            return ApexPages.currentPage().getParameters().get('id'); }  
+        set;
+    }
+
+    public string userParam2{
+        get{
+            return ApexPages.currentPage().getParameters().get('tfac'); }  
+        set;
+    }
+
+    public string otherUserParam{
+        get
+        {
+            if(otherUserParam == null)
+            {
+                otherUserParam = ApexPages.currentPage().getParameters().get('oid'); 
+                otherId = otherUserParam;
+            } 
+            return otherUserParam;
+        }             
+        set;
+    }
+
+    public PageReference manageTenant()
+    {     
+        PageReference t;            
+        try
+        { 
+            
+            string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementManage?id=' + userParam; 
+            t = new PageReference(s);    
+            t.setRedirect(true);              
+        }
+        catch (Exception e){}                                                          
+        return t;           
+    }
+
+    public PageReference viewOtherTenants()
+    {     
+        PageReference t;            
+        try
+        { 
+            tenantUser = currUser; 
+            string param2 = 'aa';
+            if(userIsAdmin){
+                param2 = userParam; }
+            string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementOther?id=' + userParam + '&tfac=' + param2 ; 
+            t = new PageReference(s);    
+            t.setRedirect(true);              
+        }
+        catch (Exception e){}                                                          
+        return t;           
+    }   
+
+    public PageReference retViewOtherTenants()
+    {     
+        PageReference t;            
+        try
+        { 
+            tenantUser = currUser; 
+            string param2 = 'aa';
+            if(userIsAdmin){
+                param2 = userParam; }
+            System.debug('*** otherUserParam: ' + otherUserParam + ', otherId: ' + otherId);
+            string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementOther?id=' + userParam + '&oid2=' + otherId;  
+            
+            t = new PageReference(s);    
+            t.setRedirect(true);    
+            tenant.req.user__c = ApexPages.currentPage().getParameters().get('oid2');    
+            //tenant.req.user__c = otherUserParam;      
+        }
+        catch (Exception e){}                                                          
+        return t;           
+    }   
+
+
+    public PageReference viewMasterTenants()
+    {     
+        PageReference t;            
+        try
+        { 
+            string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementMasterTenants?id=' + userParam; 
+            t = new PageReference(s);    
+            t.setRedirect(true);              
+        }
+        catch (Exception e){}                                                          
+        return t;           
+    }   
+
+    public PageReference returnHome()
+    {     
+        PageReference t;            
+        try
+        { 
+            string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementHome?id=' + userParam;  
+            t = new PageReference(s);    
+            t.setRedirect(true);              
+        }
+        catch (Exception e){}                                                          
+        return t;           
+    }   
+
+    public PageReference viewHelp()
+    {         
+        PageReference t ;        
+        try
+        { 
+            string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementHelp'; 
+            t = new PageReference(s);    
+            t.setRedirect(true);              
+        }
+        catch (Exception e){}                                                          
+        return t;           
+    }   
+
+
+    public Map<string, Tenant_User__c> tenantUsers
+    {
+        get
+        {
+            if(tenantUsers == null)
+            {
+                List<Tenant_User__c> myUsers = [select id, User__c from Tenant_User__c];
+                for(Tenant_User__c u: myUsers)
+                {
+                    userMap.put(u.id, u);
+                }
+            }
+            return tenantUsers;
+        }
+        set;
+    }
+
+    //**** ============  Code for tenants starts here =============
+    
+    public List<SelectOption> getReqTypeAdmin()
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        
+        options.add(new SelectOption('--None--','--None--'));
+        options.add(new SelectOption('Create','Create'));
+        options.add(new SelectOption('Refresh','Refresh'));
+        options.add(new SelectOption('Delete','Delete'));
+        options.add(new SelectOption('Mass Delete','Mass Delete'));
+        return options;
+    }
+
+    public List<SelectOption> getReqType()
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        
+        options.add(new SelectOption('--None--','--None--'));
+        options.add(new SelectOption('Create','Create'));
+        options.add(new SelectOption('Refresh','Refresh'));
+        options.add(new SelectOption('Delete','Delete'));
+        return options;
+    }
+
+    
+    public List<Tenant__c> uTenants
+    {
+        get
+        {
+            if(uTenants == null)
+            {  
+                uTenants = getUserTenants(); 
+                if(uTenants == null){
+                    return null; }
+                else{
+                    return uTenants; }
+            }
+            else{
+                return uTenants;}
+        }
+        set;    
+    }
+    
+ 
+
+    public List<Tenant__c> getUserTenants()
+    {
+        List<Tenant__c> myTenants = new List<Tenant__c>();
+        List<Tenant__c> myTenants2 = new List<Tenant__c>();
+        tenantTypeVerSeqMap = new Map<string, Map<Integer, Integer>>();
+        tenantSTypeVerSeqMap = new Map<String, Map<String, Integer>>();
+        tenantTypeNameMap = new Map<string, List<string>>();
+        System.debug('*** START tenantTypeVerSeqMap: ' + tenantTypeVerSeqMap);
+        System.debug('*** START tenantSTypeVerSeqMap: ' + tenantSTypeVerSeqMap);
+        
+        try
+        {
+            Id tempId;
+            String oid;
+            oid = ApexPages.currentPage().getParameters().get('oid');
+            System.debug('*** oid: ' + oid);
+            
+            if(oid == null){
+                tempId = currUser.id; }
+            else{
+                tempId = oid; }
+            
+            System.debug('*** START tempId: ' + tempId);
+            myTenants = [select id, Tenant_Name__c, Sales_Tenant_URL__c, Comments__c, Status__c, User__c,  Subtype__c, master_base_version__c, sequence_number__c, wdVersion__c, OMS_Server__c, URL__c, Tenant_Type_Name__c, Tenant_Type__c, OTS_Server__c,          
+             (select id, name, User__c, Tenant__c, Source_Tenant__c, Destination_Tenant__c, Requested_Date__c, Maintenance_Window__c, wdVersion__c,
+              Comments__c, Request_Type__c, CreatedDate, Status__c, CreatedById, lastModifiedDate, Refresh_Source__c, Cancellation_Reason__c, Activity_Log__c, Jira_ID__c  From User_Tenant_Automation_Requests__r where status__c  not in ('Completed', 'Cancelled') order by createdDate desc)  from Tenant__c where User__c =: tempId order by Subtype__c, master_base_version__c, sequence_number__c];
+            
+            System.debug('*** START myTenants: ' + myTenants);
+            string curr = '';
+            string prev = '';
+            Integer i = 0;
+            List<Tenant__c> temp = new List<Tenant__c>(); 
+            List<String> tenantNames = new List<String>();
+            Map<Integer, Integer> verSeqMap = new Map<Integer, Integer>();
+            Map<String, Integer> sverSeqMap = new Map<String, Integer>();
+            pendingRequests = new List<User_Tenant_Automation_Request__c>();
+                      
+            for(Tenant__c t: myTenants)
+            {
+                userTenantMap.put(t.Tenant_Name__c, t);
+                userTenantMap2.put(t.id, t);
+                userTenantIdMap.put(t.id, t.Tenant_Name__c);
+                if(t.Status__c == 'Active')
+                {
+                    activeTenants.add(t); 
+                    if(t.User_Tenant_Automation_Requests__r.size() <1)
+                    {                    
+                        sourceTenants.add(t.Tenant_Name__c); 
+                        sourceTenantsMap.put(t.Tenant_Name__c, t);
+                        sourceTenantsList.add(t);
+                        sourceTenantsIdMap.put(t.id,t.Tenant_Name__c);
+                    }                             
+                }
+                if(t.Status__c == 'Inactive'){
+                    inactiveTenants.add(t); 
+                }
+                if(t.Status__c == 'Provisioned')
+                {
+                    pendingTenants.add(t); 
+                    System.debug('*** Pending requests: ' + t.User_Tenant_Automation_Requests__r.size());
+                }
+                if(t.User_Tenant_Automation_Requests__r.size() >0){   
+                    pendingRequests.addAll(t.User_Tenant_Automation_Requests__r); } 
+                
+                    
+                tenantStypeMap.put(t.Tenant_Name__c, t.Subtype__c);   
+                System.debug('*** STAR: ' + t.User_Tenant_Automation_Requests__r);
+                
+                i=i+1;
+                curr = t.subType__c;
+                System.debug('*** My Tenant: ' + t);
+                System.debug('*** Current Tenant: ' + t.subType__c + ' - ' + integer.ValueOf(t.master_base_version__c)+ ' - ' + integer.ValueOf(t.sequence_number__c));
+                if(curr <> prev || i== myTenants.size())
+                {
+                    if(i == myTenants.size())
+                    {
+                        if(tenantNames.size() > 0 && curr <> prev)
+                        {
+                            tenantTypeNameMap.put(prev, tenantNames);
+                            tenantNames = new List<String>();
+                            System.debug('*** Curr:'+ curr + ' Prev:'+ prev + '; tenantTypeNameMap: ' + tenantTypeNameMap);
+                                                       
+                            tenantSTypeVerSeqMap.put(prev, sverSeqMap);
+                            System.debug('*** tenantSTypeVerSeqMap ' + tenantSTypeVerSeqMap);
+                            
+                            sverSeqMap = new Map<String, Integer>(); 
+                            System.debug('*** sverSeqMap initialized ' + sverSeqMap);
+                        }
+                                                  
+                        tenantNames.add(t.Tenant_Name__c);
+                        tenantTypeNameMap.put(curr, tenantNames);
+                        System.debug('*** Curr:'+ curr + ' Prev:'+ prev + '; tenantTypeNameMap: ' + tenantTypeNameMap);
+                                                    
+                        sverSeqMap.put(curr + string.ValueOf(t.master_base_version__c), integer.ValueOf(t.sequence_number__c));
+                        System.debug('*** sverSeqMap ' + sverSeqMap);
+                        
+                        tenantSTypeVerSeqMap.put(curr, sverSeqMap);
+                        System.debug('*** tenantSTypeVerSeqMap ' + tenantSTypeVerSeqMap);
+                        sverSeqMap = new Map<String, Integer>(); 
+                        System.debug('*** sverSeqMap initialized ' + sverSeqMap);
+                    }                
+                    else
+                    {                
+                        if(tenantNames.size()>0 && curr <> prev)
+                        {
+                            tenantTypeNameMap.put(prev, tenantNames);
+                            System.debug('*** Curr:'+ curr + ' Prev:'+ prev + '; tenantTypeNameMap: ' + tenantTypeNameMap);
+                            tenantNames = new List<String>();    
+
+                            sverSeqMap = new Map<String, Integer>();
+                            sverSeqMap.put(curr + string.ValueOf(t.master_base_version__c), integer.ValueOf(t.sequence_number__c));
+                            System.debug('*** sverSeqMap ' + sverSeqMap);
+                            
+                            tenantSTypeVerSeqMap.put(curr, sverSeqMap);
+                            System.debug('*** tenantSTypeVerSeqMap ' + tenantSTypeVerSeqMap);                        
+                        }    
+                                          
+                    }        
+                }
+                
+                if(i <> myTenants.size())
+                {
+                    tenantNames.add(t.Tenant_Name__c);
+                    prev = curr;
+                    
+                    sverSeqMap.put(curr + string.ValueOf(t.master_base_version__c), integer.ValueOf(t.sequence_number__c));
+                    System.debug('*** sverSeqMap ' + sverSeqMap);
+                
+                    tenantSTypeVerSeqMap.put(t.Subtype__c, sverSeqMap);
+                    System.debug('*** tenantSTypeVerSeqMap ' + tenantSTypeVerSeqMap);   
+                }                                                  
+            }
+        } 
+  
+        catch (Exception e){    
+        }
+        return myTenants;    
+    }    
+   
+
+    /*public List<User_Tenant_Automation_Request__c> pendingSTAR
+    {
+        get
+        {
+            List<Tenant__c> temp = new List<Tenant__c>(); 
+            System.debug('*** pending requests for STAR: ' + pendingRequests);
+            if(pendingSTAR == null)
+            {
+                temp = uTenants;
+                pendingSTAR = pendingRequests;
+            }
+            List<StarWrapper> a = pendingStarWrapper;
+            return pendingSTAR;
+        }
+        set;    
+    }   */
+    
+    
+    public List<User_Tenant_Automation_Request__c> pendingSTAR
+    {
+        get
+        {
+            List<Tenant__c> temp = new List<Tenant__c>(); 
+            List<User_Tenant_Automation_Request__c> stars = new List<User_Tenant_Automation_Request__c>();
+            List<StarWrapper> a = new List<StarWrapper>();
+            System.debug('*** pending requests for STAR: ' + pendingRequests);
+            
+            if(pendingSTAR == null)
+            {
+                temp = uTenants;                
+                
+                for(User_Tenant_Automation_Request__c u: pendingRequests)
+                {
+                    StarWrapper s = new StarWrapper(u);
+                    a.add(s);
+                }      
+                a.sort();
+                
+                for(StarWrapper s: a){
+                    stars.add(s.star); }
+                pendingSTAR = stars;
+            }           
+            return pendingSTAR;
+        }
+        set;    
+    }   
+        
+
+    public List<Tenant__c> activeUserTenants
+    {      
+        get
+        {   
+            List<Tenant__c> temp = new List<Tenant__c>(); 
+            if(activeUserTenants == null)
+            {
+                temp = uTenants;
+                activeUserTenants = activeTenants;
+            }
+            return activeUserTenants; 
+        }
+        set; 
+    }
+
+    public List<Tenant__c> inactiveUserTenants
+    {      
+        get
+        {   
+            List<Tenant__c> temp = new List<Tenant__c>(); 
+            if(inactiveUserTenants == null)
+            {
+                temp = uTenants;
+                inactiveUserTenants = inactiveTenants;
+            }
+            return inactiveUserTenants; 
+        }
+        set; 
+    }
+
+
+    public List<Tenant__c> pendingUserTenants
+    {      
+        get
+        {   
+            List<Tenant__c> temp = new List<Tenant__c>(); 
+            if(pendingUserTenants == null)
+            {
+                temp = uTenants;
+                pendingUserTenants = pendingTenants;
+            }
+            return pendingUserTenants; 
+        }
+        set; 
+    }
+
+    public List<Tenant__c> masterTenantList
+    {
+        get
+        {
+            if(masterTenantList == null)
+            {
+                masterTenants = [select id, Tenant_Name__c, Active__c, Data_Center_Name__c, Sales_Data_Center__c,Sales_Data_Center__r.name, Sales_Tenant_URL__c, Master_Base_Version__c, wdVersion__c, Tenant_Type_Name__c, Tenant_Type__c, Tenant_Type__r.name, Subtype__c, Comments__c, Is_Master_Tenant_Active__c from Tenant__c where Is_Master_Tenant_Active__c =: true and  Master__c =: true order by Tenant_Name__c]; 
+        
+                for(Tenant__c m: masterTenants)
+                {
+                    masterMap.put(m.Tenant_Name__c, m);   
+                    //masterTenants2.add( (m.Tenant_Name__c).replace('pwd',''));                       
+                    //if( ((m.Tenant_Name__c).toUpperCase()).contains('PWD') ){
+                    //    masterPwdMap.put( m.Tenant_Name__c, (m.Tenant_Name__c).toUpperCase().replace('PWD','')); 
+                    //    masterPwdMap2.put((m.Tenant_Name__c).replace('pwd','')+ 'zzz', m.Tenant_Name__c); 
+                    //}  
+                    System.debug('*** masterTenants: ' + masterTenants);
+                    //System.debug('*** masterTenants2: ' + masterTenants2);
+                    //System.debug('*** masterPwdMap: ' + masterPwdMap);
+                    //System.debug('*** masterPwdMap2: ' + masterPwdMap2);
+                }
+                return masterTenants;
+            }
+            else {      
+                return masterTenantList; }
+            
+        }
+        set;        
+    }
+    
+
+    
+    public List<SelectOption> getBaseTenants()
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        
+        options.add(new SelectOption('--None--','--None--'));
+        for(Tenant__c m: masterTenantList)
+        {
+            String t = ((m.Tenant_Name__c).toUpperCase()).remove('PWD');
+            options.add(new SelectOption(m.Tenant_Name__c, t.toLowerCase()));  
+        }   
+        system.debug('*** options: ' + options);
+        return options;
+    }
+
+
+    
+    public String destTenant
+    {
+        get
+        {
+            List<Tenant__c> srcTenants = getUserTenants();
+            System.debug('*** Source ' + srcTenants);            
+             
+            String source = tenant.req.Source_Tenant__c;
+            String reqType = tenant.req.Request_Type__c;
+            
+            Tenant_User__c tempUser;
+            String oid;
+            oid = ApexPages.currentPage().getParameters().get('oid');
+            
+            if(oid == null){
+                tempUser = tenantUser; }
+            else{
+                tempUser = otherUser; }
+
+            
+            if(source <> null)
+            {
+                if( source.contains('salesmaster') && reqType == 'Create' ) //for creating from master tenant
+                {
+                    Tenant__c base = new Tenant__c();
+                    type = '';
+                    typeName = '';
+                    subType = '';
+                    masterURL = null;
+                    baseVersion = 0;
+                    wdayVersion = 0;
+                    dataCenter = null;
+                    dataCenterName = '';
+                    newVer = 0;
+                    newSeq = 0;
+                    
+                    Map<Integer, Integer>  uTypeVerSeq = new Map<Integer, Integer>();
+                    Map<String, Integer>  sTypeVerSeq = new Map<String, Integer>();
+                    Integer baseVerSeq;
+                    
+                    base = masterMap.get(source);
+                    if(base <> null)
+                    {
+                        type = base.Tenant_Type__c; //base.Tenant_Type_Name__c;
+                        typeName = base.Tenant_Type__r.name;
+                        System.debug('*** BASE TYPE: ' + type);
+                        subType = base.Subtype__c; 
+                        baseVersion = Integer.valueOf(base.Master_Base_Version__c);
+                        wdayVersion = Integer.valueOf(base.Workday_Version__c);
+                        dataCenter = base.Sales_Data_Center__c;
+                        dataCenterName = base.Sales_Data_Center__r.name;
+                        masterURL = base.Sales_Tenant_URL__c;
+                    }
+       
+                    uTypeVerSeq = tenantTypeVerSeqMap.get(subType);
+                    System.debug('*** tenantSTypeVerSeqMap: ' + tenantSTypeVerSeqMap);
+                    sTypeVerSeq = tenantSTypeVerSeqMap.get(subType);
+                    System.debug('*** sTypeVerSeq: ' + sTypeVerSeq);
+                    if(sTypeVerSeq <> null)
+                    {
+                        
+                        //baseVerSeq = uTypeVerSeq.get(baseVersion); 
+                        baseVerSeq = sTypeVerSeq.get(subtype + baseVersion); 
+                        if(baseVerSeq <> null)
+                        {
+                            System.debug('*** baseVerSeq ' + baseVerSeq);                        
+                            newSeq = baseVerSeq + 1; 
+                        }
+                        else {
+                            newSeq = 1; }
+                    }
+                    else
+                    {
+                        newSeq = 1;                    
+                    }
+                        
+                    String ver = String.ValueOf(baseVersion);
+                    String seq = String.ValueOf(newSeq);
+                    if(ver <> null)
+                    {
+                        if(ver.length() == 1){
+                            ver = '0' + ver; }
+                    }
+                    if(seq.length() == 1)
+                    {
+                        seq = '0' + seq;
+                    }
+                    destTenant = tempUser.Tenant_Prefix__c + subType + ver + seq + 'v' + wdVersion;  
+                    newTenant = destTenant;      
+                }    
+            }
+            else 
+                destTenant = '';                          
+            return destTenant;         
+        }
+        set;    
+    }
+
+    
+
+    public List<SelectOption> getRefreshSource()
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        options.add(new SelectOption('--None--','--None--'));
+        options.add(new SelectOption('My Tenant','My Tenant'));
+        options.add(new SelectOption('Master Tenant','Master Tenant'));
+        options.add(new SelectOption('Other Tenant','Other Tenant'));     
+        return options;
+    }
+
+
+    public string refreshValidation  //Validate if Refresh is possible based on selected field values
+    {
+        get
+        {    
+            if( refreshValidation == null)
+            {  
+                if(refreshSrc == 'My Tenant')
+                {
+                    if(activeUserTenants.size() < 2){
+                        return 'You do not have enough active tenants. Please select another refresh Source'; }
+                    else{ 
+                        return 'valid'; }
+                }                   
+            }
+            return refreshValidation; 
+        }
+        set;            
+    }
+
+   
+    public List<SelectOption> getSourceTenantsOptions()
+    {
+        List<SelectOption> options = new List<SelectOption>();  
+        List<Tenant__c> srcTenants = uTenants;
+        
+        options.add(new SelectOption('--None--','--None--'));
+        
+        /*for(String s: sourceTenants)
+        {
+            options.add(new SelectOption(s,s));
+        }*/
+        for(Tenant__c t: sourceTenantsList)
+        {
+            options.add(new SelectOption(t.id, t.Tenant_Name__c));
+        }      
+        options.Sort();
+        return options;
+    }
+
+    
+    public List<SelectOption> getMyDestTenants()  //**** Used by Refresh - My Tenant
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        List<Tenant__c> destTenants = uTenants;
+        
+        options.add(new SelectOption('--None--','--None--'));
+        
+        /*for(String s: sourceTenants)
+        {
+            if( (s <> tenant.req.Source_Tenant__c) && (tenantStypeMap.get(s) == tenantStypeMap.get(tenant.req.Source_Tenant__c))  )
+            {
+                options.add(new SelectOption(s,s));
+            }
+        } */   
+        for(Tenant__c s: sourceTenantsList)
+        {
+            if( (s.id <> tenant.req.Source_Tenant__c) && (tenantStypeMap.get(s.Tenant_Name__c) == tenantStypeMap.get(sourceTenantsIdMap.get(tenant.req.Source_Tenant__c)))  ) {
+                options.add(new SelectOption(s.id,s.Tenant_Name__c));
+            }
+        }      
+        System.debug('*** getMyDestTenants: ' + options);  
+        options.Sort(); 
+        return options;  
+    }
+  
+    public List<SelectOption> getMyDestTenants2() //**** Used by Refresh - Master Tenant
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        List<Tenant__c> destTenants = uTenants;
+        
+        options.add(new SelectOption('--None--','--None--'));
+        Tenant__c master = new Tenant__c();
+        
+        master = masterMap.get(tenant.req.Source_Tenant__c);
+        if(master <> null)
+        {    
+            System.debug('*** mastermap ' + masterMap);
+            System.debug('*** ' + master);
+            System.debug('*** tenantStypeMap ' + tenantStypeMap );
+                        
+            /*for(String s: sourceTenants)
+            {            
+                if( (s <> tenant.req.Source_Tenant__c) && ( tenantStypeMap.get(s) == master.subType__c)  ) {
+                    options.add(new SelectOption(s,s)); }
+            }*/
+            for(Tenant__c s: sourceTenantsList)
+            {
+                if( (s.Tenant_Name__c <> tenant.req.Source_Tenant__c) && ( tenantStypeMap.get(s.Tenant_Name__c) == master.subType__c)  ) { 
+                //if( (s.id <> tenant.req.Source_Tenant__c) && (tenantStypeMap.get(s.Tenant_Name__c) == tenantStypeMap.get(sourceTenantsIdMap.get(tenant.req.Source_Tenant__c)))  ) {
+                    options.add(new SelectOption(s.id,s.Tenant_Name__c)); }
+            }                     
+        } 
+        System.debug('*** getMyDestTenants2: ' + options);  
+        options.Sort(); 
+        return options;  
+    }
+    
+    
+    
+//======= START OF CODE FOR REFRESHING FROM OTHER TENANT - SOURCE & DESTINATION
+ 
+    public List<SelectOption> getOtherUserTenants()
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        
+        options.add(new SelectOption('--None--','--None--'));
+        for(Tenant__c m: otherTenants)
+        {
+            options.add(new SelectOption(m.Tenant_Name__c, m.Tenant_Name__c));  
+        }   
+        return options;
+    }
+
+    public tenantWrapper otherTenant{
+        get{
+            if(otherTenant == null)
+            { 
+                otherTenant = new tenantWrapper();
+                otherTenant.req.Requested_Date__c = System.Today();   
+                List<Tenant_User__c> a = new List<Tenant_User__c>([select id, name, user__c from Tenant_User__c where name = '--None--']);
+                if(a.size()>0){
+                    otherTenant.req.User__c = a[0].id; }                             
+            }
+            return otherTenant;
+        }       
+        set;         
+    }
+
+    public List<Tenant__c> otherSourceTenantList
+    {
+        get
+        {
+            if(otherSourceTenantList == null)
+            {
+                otherSourceTenants = [select id, Tenant_Name__c, Sales_Tenant_URL__c, Active__c,  Master_Base_Version__c, wdVersion__c, Tenant_Type_Name__c, Tenant_Type__c, Subtype__c from Tenant__c where Active__c =: true and  User__c =: otherTenant.req.User__c order by Tenant_Name__c];
+        
+                for(Tenant__c m: otherSourceTenants)
+                {
+                    otherMap.put(m.Tenant_Name__c, m);         
+                }
+                return otherSourceTenants;
+            }
+            else {      
+                return otherSourceTenantList; }
+        }
+        set;        
+    }
+
+    public List<SelectOption> getOSTenants()
+    {
+        System.debug('*** {!(otherTenant.req.User__c == currUser)} : ' + otherTenant.req.User__c + ' - ' + currUser);
+        List<SelectOption> options = new List<SelectOption>();
+        
+        options.add(new SelectOption('--None--','--None--'));
+        for(Tenant__c m: otherSourceTenantList)
+        {
+            options.add(new SelectOption(m.Tenant_Name__c, m.Tenant_Name__c));  
+        }   
+        return options;
+    }
+
+    public Tenant__c getOtherSourceTenant1()
+    {
+        List<Tenant__c> b = new List<Tenant__c>([select id, Tenant_Name__c, Active__c,  Sales_Tenant_URL__c, Master_Base_Version__c, wdVersion__c, Tenant_Type_Name__c, Tenant_Type__c, Subtype__c from Tenant__c where Active__c =: true and tenant_Name__c =:otherTenant.req.Source_Tenant__c order by Tenant_Name__c]);
+        if(b.size()>0){
+            otherSourceTenant = b[0];}   
+
+        System.debug('*** ' + otherTenant.req.Source_Tenant__c + ' - Size: ' + otherSourceTenant);      
+        return null;
+    }
+    
+    
+    public List<SelectOption> getMyDestTenant3()  //**** Used by Refresh - Other Tenant
+    {
+        List<SelectOption> options = new List<SelectOption>();
+        List<Tenant__c> destTenants = uTenants;
+        getOtherSourceTenant1();
+        
+        options.add(new SelectOption('--None--','--None--'));
+        
+        if(otherSourceTenant <> null){
+               System.debug('**** Source ' + otherTenant.req.Source_Tenant__c + ', ' + otherSourceTenant.Tenant_Name__c); } 
+        
+        /*for(String s: sourceTenants)
+        {    
+            System.debug('**** Dest ' + s + ' - ' + tenantStypeMap.get(s) );            
+            if( (tenantStypeMap.get(s) == otherSourceTenant.SubType__c)) 
+            {
+                options.add(new SelectOption(s,s));
+            }
+        }*/
+        for(Tenant__c s: sourceTenantsList)
+        {
+            System.debug('**** Dest ' + s + ' - ' + tenantStypeMap.get(s.Tenant_Name__c) );            
+            if( (tenantStypeMap.get(s.Tenant_Name__c) == otherSourceTenant.SubType__c)) 
+            {
+                options.add(new SelectOption(s.id,s.Tenant_Name__c));
+            }   
+        }      
+        options.Sort(); 
+        System.debug('*** MyDestTenants3 ' + options);
+        return options;  
+    }
+
+//======= END OF CODE FOR REFRESHING FROM OTHER TENANT
+
+
+//======= START OF CODE FOR VIEWING OTHER USER TENANTS 
+    public Tenant_User__c otherUser
+    {
+        get
+        {
+            Id tempId;
+            if(ApexPages.currentPage().getParameters().get('oid') == null && tenant.req.user__c <> null){
+                tempId = tenant.req.user__c; }
+            else{
+                tempId = ApexPages.currentPage().getParameters().get('oid'); } 
+            System.debug('*** tempId: ' + tempId);
+            
+            if(tempId <> null){ 
+                otherUser = [select id, name, User__c, User__r.firstname, User__r.lastname, Status__c, Tenant_Prefix__c, Maximum_Number_of_Tenants__c, Number_of_Tenants_Available__c, Admin__c from Tenant_User__c where id=:tempId]; }           
+            return otherUser;
+        }
+        set;
+    }
+    
+    public List<Tenant__c> otherTenants
+    {
+        get
+        {
+            //otherTenants = [select id, name, CreatedDate, Tenant_Name__c, Comments__c, Status__c, User__c, Type__c, Subtype__c, master_base_version__c, sequence_number__c, wdVersion__c, OMS_Server__c, URL__c from Tenant__c where User__c =:otherUser.id and Active__c =: true order by Subtype__c, master_base_version__c, sequence_number__c];
+            otherTenants = [select id, name, CreatedDate, Tenant_Name__c, Sales_Tenant_URL__c, Comments__c, Status__c, User__c, Tenant_Type_Name__c, Tenant_Type__c, Subtype__c, master_base_version__c, sequence_number__c, wdVersion__c, OMS_Server__c, URL__c,
+            (select id, name, User__c, Tenant__c, Source_Tenant__c, Destination_Tenant__c, Requested_Date__c, Maintenance_Window__c, wdVersion__c,
+            Comments__c, Request_Type__c, CreatedDate, tenant__r.Tenant_Type_Name__c, tenant__r.Tenant_Type__c, Status__c, CreatedById, Refresh_Source__c, Cancellation_Reason__c, Activity_Log__c, Jira_ID__c From User_Tenant_Automation_Requests__r where status__c  not in ('Completed', 'Failed', 'Cancelled'))  from Tenant__c where User__c =:otherUser.id and Status__c not IN ('Inactive') order by Status__c, Subtype__c, master_base_version__c, sequence_number__c];
+            
+            System.debug('*** otherTenants1 ' + otherTenants);
+            
+            for(Tenant__c t: otherTenants)
+            {
+                if(t.Status__c == 'Active')
+                {
+                    otherActiveTenants.add(t);
+                    System.debug('*** Active: ' + otherActiveTenants);
+                    if(t.User_Tenant_Automation_Requests__r.size() >0){   
+                        otherPendingRequests.addAll(t.User_Tenant_Automation_Requests__r); }   
+                }
+                if(t.Status__c == 'Inactive'){
+                    otherInactiveTenants.add(t); }
+                if(t.Status__c == 'Provisioned')
+                {
+                    otherPendingTenants.add(t); 
+                    if(t.User_Tenant_Automation_Requests__r.size() >0){   
+                        otherPendingRequests.addAll(t.User_Tenant_Automation_Requests__r); }  
+                }
+            }
+            
+            return otherTenants;
+        }
+        set;       
+    }
+    
+ 
+    public List<Tenant__c> otherActiveUserTenants
+    {      
+        get
+        {   
+            List<Tenant__c> temp = new List<Tenant__c>();
+            if(otherActiveUserTenants == null)
+            {
+                 temp = otherTenants; 
+                 otherActiveUserTenants = otherActiveTenants;
+            }
+            return otherActiveUserTenants;
+        }
+        set; 
+    }
+    
+    public List<User_Tenant_Automation_Request__c> otherPendingSTAR
+    {
+        get
+        {
+            List<Tenant__c> temp = new List<Tenant__c>(); 
+            System.debug('*** other pending STAR: ' + otherPendingSTAR);
+            System.debug('*** other pending requests for STAR: ' + otherPendingRequests);
+            if(otherPendingSTAR == null)
+            {
+                //temp = otherTenants; 
+                otherPendingSTAR = otherPendingRequests;
+            }
+            return otherPendingSTAR;
+        }
+        set;    
+    }
+  
+    /*public List<User_Tenant_Automation_Request__c> otherPendingRequests
+    {
+        get
+        {    
+            List<Tenant__c> temp = new List<Tenant__c>();
+            if(otherPendingRequests == null)
+            {
+                temp = otherTenants;
+                for(Tenant__c o: otherTenants)
+                {
+                    if(o.User_Tenant_Automation_Requests__r.size() > 0){
+                        otherPendingRequests.addAll(o.User_Tenant_Automation_Requests__r);}                                
+                }
+            }
+            return otherPendingRequests;
+        }
+        set;    
+    }*/
+    
+    
+   
+    public PageReference manageOtherTenant()
+    {     
+        PageReference t;            
+        try
+        { 
+            if(tenant.req.User__c <> null)
+            {
+            //string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementManageOther?id=' + currUser.id + '&oid=' + otherUser.id + '&tfac='+ userParam2; 
+                string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementManageOther?id=' + currUser.id + '&oid=' + otherUser.id ; 
+                otherId = otherUserParam;
+                System.debug('*** otherId: ' + otherId);
+                otherId = otherUser.id;
+                System.debug('*** otherId2: ' + otherId);
+                t = new PageReference(s);    
+                t.setRedirect(true);  
+            }
+            else
+            {
+                ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Please select the user from Search User field.'));
+                t = null; 
+            }
+                        
+        }
+        catch (Exception e){}                                                          
+        return t;           
+    }
+//======= END OF CODE FOR VIEWING OTHER USER TENANTS 
+
+
+//======= START OF CODE FOR MASS DELETION OPTIONS
+    public String[] getDelTenants() {
+        return delTenants;
+    }
+            
+    public void setDelTenants(String[] delTenants) {
+        this.delTenants = deltenants;
+    }
+//======= END OF CODE FOR MASS DELETION OPTIONS
+
+    public with sharing class tenantWrapper
+    {
+        public User_Tenant_Automation_Request__c req { get; set;}    
+ 
+        public tenantWrapper()
+        {
+            req = new User_Tenant_Automation_Request__c();            
+        }
+        
+        public tenantWrapper(User_Tenant_Automation_Request__c r)
+        {
+            req = r; 
+        }
+        
+    }
+
+    public tenantWrapper tenant{
+        get{
+            if(tenant == null)
+            { 
+                Id oid2 = ApexPages.currentPage().getParameters().get('oid2');  //otherUserParam; // 
+                
+                tenant = new tenantWrapper();
+                Tenant.req.Requested_Date__c = System.Today(); 
+                if(oid2 <> null){
+                    Tenant.req.User__c = oid2; }             
+            }
+            return tenant;
+        }       
+        set;         
+    }
+
+
+    
+    public with sharing class userWrapper
+    {
+        public  Tenant_User__c usr { get; set;}    
+ 
+        public userWrapper()
+        {
+            usr = new Tenant_User__c();                    
+        }
+        
+        public userWrapper(Tenant_User__c u)
+        {
+            usr = u; 
+        }  
+    }
+    
+    public userWrapper uw{
+        get{
+            if(uw == null){
+                uw = new userWrapper();
+            }
+            return uw;
+        }
+        set;   
+    }
+    
+    public PageReference editReqDate()
+    { 
+        reqDateEditable = true;
+        
+        Id a = ApexPages.currentPage().getParameters().get('oid'); 
+        ApexPages.currentPage().getParameters().put('oid', a);
+        return null;
+        
+    }
+    
+    /*public void editRequestDate()
+    {
+        reqDateEditable = true;
+        Id a = ApexPages.currentPage().getParameters().get('oid');
+        PageReference t;
+               
+        ApexPages.currentPage().getParameters().put('oid', a);    
+    }*/
+   
+    public PageReference SubmitRequest()
+    {   
+        Id oid = otherUserParam; //otherId;
+        System.debug('*** otherId: ' + otherId + '; otherUserParam: ' + otherUserParam);
+        List<OTS_Server__c> otsAll = new List<OTS_Server__c>();
+        OTS_Server__c ots = new OTS_Server__c();
+        String otsName ='';
+                  
+        try
+        { 
+            
+            otsAll = [select id, name, Number_of_Pending_Tenants__c  from OTS_Server__c where Number_of_Tenants_Available__c > 0 and Active__c =:true order by Number_of_Tenants_Available__c];
+            if(otsAll.size()>0)
+            {
+                ots = otsAll[0]; 
+                otsName = ots.name;
+                System.debug('*** OTS from select: ' + ots);                
+            } 
+
+            
+            Tenant__c req = new Tenant__c();
+            
+            Map<string, Tenant_User__c> tempMap = tenantUsers;
+            Tenant__c tempTenant = new Tenant__c();
+            Tenant_User__c tgtUser = new Tenant_User__c();
+            Id tempId;          
+  
+            
+            if(oid <> null)
+            {
+                tempId = oid; 
+                tgtUser = otherTenantUser; 
+            }
+            else
+            {
+                tempId = ApexPages.currentPage().getParameters().get('id'); 
+                tgtUser = currUser;
+            }
+            
+            if(tenant.req.Request_Type__c=='--None--')
+            {
+                ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Please select a request.'));
+                return null;
+            }
+            
+            
+            if(tenant.req.Request_Type__c == 'Create')
+            {
+                if(newTenant == '' || newTenant == null || tenant.req.Source_Tenant__c == null || tenant.req.Source_Tenant__c == '--None--')
+                {
+                    ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Please select the source environment.'));
+                    return null;
+                }
+                
+                if(tgtUser.Number_of_Tenants_Available__c == 0) //if(currUser.Number_of_Tenants_Available__c == 0)
+                {
+                    ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'The maximum number of allowed tenants has been reached.'));
+                    return null;    
+                }                 
+                req.User__c = tempId; 
+                req.Name = newTenant;
+                req.master_base_version__c = baseVersion;                 
+                req.Status__c = 'Provisioned';
+                req.Tenant_Name__c = newTenant;
+                req.sequence_number__c = newSeq;
+                req.Tenant_Type__c = Type;
+                req.Subtype__c = subType; 
+                req.wdVersion__c = wdVersion;    
+                req.Sales_Tenant_URL__c = masterURL;
+                req.OTS_Server__c = otsName;
+                req.Sales_Data_Center__c = dataCenter;
+                req.Tenant_Unique_Id__c = newTenant + ':' + typeName.toUpperCase();
+                if(req <> null)
+                {   
+                    
+                    star.Source_Tenant__c = tenant.req.Source_Tenant__c;
+                    star.Destination_Tenant__c = req.Tenant_Name__c;   
+                    star.OTS_Server__c = otsName;               
+                    CreateStar(star, tempId,'Create');
+                    insert req;
+                    star.Tenant__c = req.id;
+                    update star;
+                    
+                    if(otsAll.size()> 0 & ots <> null)    
+                    //if(ots <> null)
+                    {
+                        System.debug('*** The OTS: ' + ots);                         
+                        ots.Number_of_Pending_Tenants__c = ots.Number_of_Pending_Tenants__c + 1;
+                        update ots;
+                    }
+                    
+                }            
+            }
+            
+            //START Refresh request
+            if(tenant.req.Request_Type__c == 'Refresh') 
+            {  
+                
+                if(refreshSrc=='--None--')
+                {
+                     ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Please select a source.'));
+                        return null;
+                }
+                if(refreshSrc == 'My Tenant' || refreshSrc  == 'Master Tenant')
+                {
+                    if(tenant.req.Source_Tenant__c == null || tenant.req.Source_Tenant__c == '--None--' ||
+                    tenant.req.Destination_Tenant__c == null ||  tenant.req.Destination_Tenant__c == '--None--' )
+                    {
+                        ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Both source and destination tenants are required.'));
+                        return null;
+                    }
+                    if(refreshSrc == 'My Tenant'){
+                        star.Source_Tenant__c = UserTenantIdMap.get(tenant.req.Source_Tenant__c); } // tenant.req.Source_Tenant__c;  
+                    else{   
+                        star.Source_Tenant__c = tenant.req.Source_Tenant__c; }                      
+                }
+            
+                if(refreshSrc == 'Other Tenant')
+                {
+                    if(otherTenant.req.Source_Tenant__c == null || otherTenant.req.Source_Tenant__c == '--None--'  || 
+                     tenant.req.Destination_Tenant__c == null || tenant.req.Destination_Tenant__c == '--None--')
+                    {
+                        ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Both source and destination tenants are required.'));
+                        return null;
+                    }
+                    system.debug('otherTenant'+otherTenant);
+                    system.debug('otherTenant'+otherTenant.req.User__c);
+                    
+                    if((otherTenant.req.User__c==null))
+                    {
+                        ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Please select a user.'));
+                        return null;
+                    }
+                    star.Source_Tenant__c = otherTenant.req.Source_Tenant__c;                               
+                }
+                     
+                star.Destination_Tenant__c = UserTenantIdMap.get(tenant.req.Destination_Tenant__c); //tenant.req.Destination_Tenant__c;  
+                
+                //tempTenant = userTenantMap.get(tenant.req.Destination_Tenant__c); Commented out on 0929
+                System.debug('*** 1st: ' + userTenantIdMap.get(tenant.req.Destination_Tenant__c));
+                System.debug('*** 2nd: ' + userTenantMap.get(userTenantIdMap.get(tenant.req.Destination_Tenant__c)));
+                //tempTenant = userTenantMap.get(userTenantIdMap.get(tenant.req.Destination_Tenant__c));
+                tempTenant = userTenantMap2.get(tenant.req.Destination_Tenant__c);
+                star.Tenant__c = tempTenant.id;              
+                star.Refresh_Source__c = refreshSrc;  
+                star.OTS_Server__c =  tempTenant.OTS_Server__c;
+                CreateStar(star, tempId,'Refresh');
+            } //END Refresh request
+       
+            if(tenant.req.Request_Type__c == 'Delete')
+            {
+                if(tenant.req.Source_Tenant__c == null || tenant.req.Source_Tenant__c == '--None--') 
+                {       
+                    ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Please select the tenant to delete.'));
+                    return null;            
+                }
+                //star.Source_Tenant__c = tenant.req.Source_Tenant__c;  
+                star.Source_Tenant__c = UserTenantIdMap.get(tenant.req.Source_Tenant__c); 
+                //tempTenant = userTenantMap.get(tenant.req.Source_Tenant__c);
+                tempTenant = userTenantMap2.get(tenant.req.Source_Tenant__c);
+                star.Tenant__c = tempTenant.id; 
+                star.OTS_Server__c =  tempTenant.OTS_Server__c;
+                System.debug('*** Delete source: ' + tenant.req.Source_Tenant__c);
+                CreateStar(star, tempId,'Delete');
+            }
+            
+           
+            
+            if(tenant.req.Request_Type__c == 'Mass Delete')
+            {
+                if(delTenants.size() == 0 || (delTenants.size() == 1  && delTenants[0] == '--None--'))
+                {
+                    ApexPages.addmessage(new ApexPages.message(ApexPages.severity.WARNING,'Please select the tenant(s) to delete.'));
+                    return null; 
+                }
+                
+                System.debug('**** delTenants ' + delTenants);
+                for(String d: delTenants)
+                {
+                    System.debug('*** Mass Delete: ' + d);
+                    if(d <> '--None--')
+                    {
+                        star = new User_Tenant_Automation_Request__c();
+                        //UserTenantIdMap.get(tenant.req.Source_Tenant__c); 
+                        star.Source_Tenant__c = UserTenantIdMap.get(d);  //d;  
+                        tempTenant = new Tenant__c(); 
+                        tempTenant = userTenantMap2.get(d); //userTenantMap.get(d);
+                        star.Tenant__c = tempTenant.id; 
+                        star.OTS_Server__c =  tempTenant.OTS_Server__c;
+                        star.Integration_Status__c = 'Failed';
+                        System.debug('*** Delete source: ' + d + ' - ' + tempTenant.Id);  
+                        System.debug('*** tempId: ' + tempId);
+                        System.debug('*** temptenant: ' + temptenant);
+                        System.debug('*** sourceTenant: ' + UserTenantIdMap.get(d));
+                        CreateStar(star, tempId,'Mass Delete');
+                    }  
+                }
+                
+            }
+        }
+        catch (DMLException e){}       
+        
+        
+        if(oid <> null)
+        {
+            string param2 = 'aa';
+            if(userIsAdmin){
+                param2 = userParam; }
+            string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementOther?id=' + userParam + '&tfac=' + param2  + '&oid2=' + oid;  
+            PageReference t = new PageReference(s); 
+            t = new PageReference(s);    
+            t.setRedirect(true);    
+            tenant.req.user__c = ApexPages.currentPage().getParameters().get('oid2');
+            return t;          
+        }
+        else
+        {
+            string s = URL.getSalesforceBaseUrl().toExternalForm() + '/apex/TenantManagementHome?id=' + userParam;      
+            PageReference t = new PageReference(s); 
+            t.setRedirect(true);  
+            return t;               
+        }  
+  
+        
+    }
+    
+    public void CreateStar(User_Tenant_Automation_Request__c star, Id tempId, String reqType)
+    {
+        star.User__c = tempId; 
+        star.Requested_Date__c = tenant.req.Requested_Date__c; 
+            System.debug('*** Maintenance Window: ' + tenant.req.Maintenance_Window__c);
+        star.Maintenance_Window__c = tenant.req.Maintenance_Window__c;
+        star.Request_Type__c = tenant.req.Request_Type__c;
+        star.Status__c = 'Submitted';
+        star.Comments__c = tenant.req.Comments__c;
+        star.wdVersion__c = wdVersion;
+        star.Data_Center__c = dataCenterName;
+        
+        
+        //Added for Integration         
+        
+            WTA_JiraIntegrationHelper integrationHelper;
+            JiraIntegration.CreateJIRAResponse integrationResponse;
+            //if((reqType=='Delete') || (reqType=='Mass Delete') ){
+            if((reqType=='Delete')  ){
+                integrationHelper= new WTA_JiraIntegrationHelper(star, 'STAR_Delete' ,'Delete');
+            }else if(reqType=='Refresh') {
+                integrationHelper= new WTA_JiraIntegrationHelper(star, 'STAR_Refresh' ,'Refresh'); 
+            
+            }else if (reqType!='Mass Delete') {
+                integrationHelper= new WTA_JiraIntegrationHelper(star, 'STAR_Create', 'Create');                
+            }
+        
+            if (reqType!='Mass Delete') {
+             integrationResponse = integrationHelper.createSTARJIRA();
+            }
+        //-Ends
+            if(reqType!='Mass Delete' && integrationResponse.Status=='Success'){
+                Star.Integration_Status__c= 'Success';
+                Star.Integration_Status_Detail__c='';             
+            } else if (reqType!='Mass Delete') {
+                Star.Integration_Status__c='Failed';
+                Star.Integration_Status_Detail__c=integrationResponse.StatusDetail;               
+            }
+       
+       if (reqType!='Mass Delete') {
+           Star.JIRA_Id__c=integrationResponse.Issue.Jira_Id; }
+            
+       system.debug('star::'+star);
+       if(star.Request_Number__c == null){
+           star.Request_Number__c='STAR'+WTA_Helper.getNextSTARRequestNumber(); }
+       system.debug('*** STAR request number: ' + star.Request_Number__c);
+       insert star;
+    }
+    
+    public class StarWrapper implements Comparable 
+    {
+
+        public User_Tenant_Automation_Request__c star;
+
+        public StarWrapper(User_Tenant_Automation_Request__c s) {
+            star = s;
+        }
+    
+        public Integer compareTo(Object compareTo) 
+        {
+            StarWrapper compareToStar = (StarWrapper)compareTo; // Cast argument to StarWrapper
+     
+            Integer returnValue = 0; // The return value of 0 indicates that both elements are equal.
+            if (star.createdDate > compareToStar.star.CreatedDate) {
+                returnValue = 1; // Set return value to a positive value.
+            } else if (star.createdDate < compareToStar.star.createdDate) {
+                returnValue = -1; // Set return value to a negative value.
+            } 
+            return returnValue;       
+        }
+    }
+    
+}
