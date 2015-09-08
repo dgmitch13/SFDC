@@ -1,0 +1,225 @@
+public class rdbaqController_v2 {
+   //8-30-2015 Donald Mitchell-v2.0 to change Opportunity fields to Questionnaire__c fields
+   
+    public Opportunity currentRecord; 
+    public Questionnaire__c q1; 
+    public Questionnaire__c c;
+    private PageReference thispage;
+    
+
+     
+    //v2.0 - Section Opportunity getter     
+    public Opportunity getCurrentRecord()
+    {
+
+          currentRecord = [SELECT Id, name, (Select Id, DBA_Service_Detail__c, Experienced_Detail__c, Future_Growth__c,Future_Growth_Detail__c, Highest_Query_Rate_Detail__c, Past_Growth__c,Past_Growth_Detail__c, 
+          What_type_of_DBA_Service__c,Number_of_servers__c,Opportunity__r.name, Complexity_count__c, Known_Frameworks__c, Backups_HA__c,Backups_HA_More_Detail__c, DBAs_on_Staff__c, 
+          Have_you_experienced__c, Highest_Query_Rate__c, Infrastructure_Detail__c,Datasize_of_Largest_MySQL__c, Datasize_More_Info__c, 
+          Data_Sharded__c, Data_Sharded_More_Info__c, Special_Business_Requirements__c, Special_Business_Req_Detail__c, 
+          General_Environment_Detail__c, Expected_Activities__c, Require_24x7_Ops__c, DBAs_on_Staff_Detail__c,Legacy_Customer__c  from Service_Questionnaires__r limit 1)           
+          FROM Opportunity WHERE Id =:ApexPages.currentPage().getParameters().get('id')];
+          System.debug('*** ' + currentRecord);
+          c = currentRecord.Service_Questionnaires__r[0];
+          System.debug('*** ' + c);
+          
+          
+          if(CurrentRecord ==null){
+                 system.debug('<--record is empty-->');
+    
+            }
+                  return currentRecord;
+          
+        
+    }
+    
+    
+    
+    
+    //v2.0 - Section Questionnaire current ID getter
+    public Questionnaire__c getq1()
+    {
+    
+      try{
+        getCurrentRecord();
+        q1 = currentRecord.Service_Questionnaires__r[0];
+        
+         }catch(Exception e){
+               ApexPages.Message myMsg = new ApexPages.Message(ApexPages.Severity.WARNING,'Please cancel and create a Service Questionnaire');
+               ApexPages.addMessage(myMsg);
+        
+        }
+        System.debug('*** ' + q1);
+        return q1;
+    
+    }
+    
+
+   //v2.0 - Section Controller - rebuild
+    public rdbaqController_v2 (ApexPages.StandardController controller) 
+    {
+        /*this.controller = controller;
+        this.currentRecord = (Opportunity)controller.getRecord();
+        
+        currentRecord = [SELECT Id, (select id, Have_you_experienced__c from Service_Questionnaires__r)           
+        FROM Opportunity WHERE Id = :ApexPages.currentPage().getParameters().get('id')];
+        system.debug('<-----------This is the way------->'+currentRecord);
+              
+        
+        q = [select id, Have_you_experienced__c from Questionnaire__c where Opportunity__c =:ApexPages.currentPage().getParameters().get('id')];
+        //:ApexPages.currentPage().getParameters().get('id')];
+        //currentRecord.id];
+        */
+    }
+        
+     //v2.0 - Creates a list of current question on the Questionnaire.
+     public string[] questions {
+        get{
+            string[] q = new string[]{};
+            q.add('1a. Do you have existing DBA\'s on staff? (+1 for No)');
+            q.add('1b. More Detail');
+            q.add('2. Are there any known frameworks in use; or is the application completely bespoke?');
+            q.add('3a. What type of DBA service are you looking for? Choose all that apply.' );
+            q.add('3b. More Detail');
+            q.add('4a. Have you experienced any of the following in the past 6-12 months? Choose all that apply.');
+            q.add('4b. More Detail');
+            q.add('5a. Do you have special business requirements that we should be aware of e.g. security/access requirements, compliance standards, SLAs, etc. Choose all that apply.');
+            q.add('5b. More Detail');
+            q.add('6. What activities do you expect us to do for you on a regular basis?');
+            q.add('1. Tell me about your environment. Do you use any of the following?');
+            q.add('2a. What is the current database size of your largest MySQL instance?');
+            q.add('2b. More Detail');
+            q.add('3a. What is the highest rate of queries per second for your busiest database host?');
+            q.add('3b. More Detail');
+            q.add('4. How many MySQL database servers will we monitor?');
+            q.add('5a. (If more than 3 database servers, ask...) Is your data sharded? (+1 for Yes)');
+            q.add('5b. More Detail');
+            q.add('6a. Do you have backups and a high availability solution in place (these are included in RDBA service)? Choose all that apply.');
+            q.add('6b. More Detail');
+            q.add('1a. How much growth has your database experienced in the past 3-6 months in terms of size and transaction volume?');
+            q.add('1b. More Detail');
+            q.add('2a. How much growth do you anticipate for your database in the next 3-6 months in terms of size and transaction volume?');
+            q.add('2b. More Detail');
+            q.add('1. More Detail');
+            q.add('1. Existing Customer?');
+            return q;
+        }
+    }
+    
+        
+      //v2.0 - Section - Captures and Update Questionnaire__c and refresh URL
+     public PageReference save() {
+            System.debug('*** what is c: ' + c);            
+            c.Have_you_experienced__c = q1.Have_you_experienced__c;
+         //   c.Opportunity__r.name = q1.Opportunity__r.name 
+         //   c.Complexity_count__c = q1.Complexity_count__c; 
+            c.What_type_of_DBA_Service__c = q1.What_type_of_DBA_Service__c;
+            c.Number_of_servers__c = q1.Number_of_servers__c;
+            c.Known_Frameworks__c = q1.Known_Frameworks__c;
+            c.DBA_Service_Detail__c = q1.DBA_Service_Detail__c;
+            c.Experienced_Detail__c = q1.Experienced_Detail__c;
+            c.Future_Growth__c = q1.Future_Growth__c;
+            c.Future_Growth_Detail__c = q1.Future_Growth_Detail__c;
+            c.Highest_Query_Rate_Detail__c = q1.Highest_Query_Rate_Detail__c;
+            c.Number_of_servers__c = q1.Number_of_servers__c;
+            c.Past_Growth__c = q1.Past_Growth__c;
+            c.Past_Growth_Detail__c = q1.Past_Growth_Detail__c  ;     
+            c.Backups_HA__c = q1.Backups_HA__c;
+            c.Backups_HA_More_Detail__c = q1.Backups_HA_More_Detail__c;
+            c.DBAs_on_Staff__c = q1.DBAs_on_Staff__c; 
+            c.Highest_Query_Rate__c = q1.Highest_Query_Rate__c ;
+            c.Infrastructure_Detail__c = q1.Infrastructure_Detail__c;
+            c.Datasize_of_Largest_MySQL__c = q1.Datasize_of_Largest_MySQL__c ;
+            c.Datasize_More_Info__c = q1.Datasize_More_Info__c;
+            c.Data_Sharded__c = q1.Data_Sharded__c;
+            c.Data_Sharded_More_Info__c = q1.Data_Sharded_More_Info__c ;
+            c.Special_Business_Requirements__c = q1.Special_Business_Requirements__c;
+            c.Special_Business_Req_Detail__c = q1.Special_Business_Req_Detail__c;
+            c.General_Environment_Detail__c = q1.General_Environment_Detail__c;
+            c.Expected_Activities__c = q1.Expected_Activities__c;
+            c.Require_24x7_Ops__c = q1.Require_24x7_Ops__c ;
+            c.DBAs_on_Staff_Detail__c = q1.DBAs_on_Staff_Detail__c;
+            c.Legacy_Customer__c = q1.Legacy_Customer__c ;
+            
+            update c;
+            
+            PageReference t;
+            String s = URL.getSalesforceBaseURL().toExternalForm() + '/' + currentRecord.id;
+            t = new PageReference(s);
+            t.setRedirect(true);
+            return t;
+
+      }
+      
+       //v2.0 - Section - Generate email with current prospect Questionnaire 
+   public PageReference sendemail(){
+        PageReference page = save();
+        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+        string subj = CurrentRecord.name + ': RDBA Questionnaire Quote Verification';
+        string[] recipient = new string[]{'managedservices-mt@percona.com'};
+        string[] sender = new string[]{System.UserInfo.getUserEmail()};
+        string body = this.summarizedHtml;
+        mail.setSubject(subj);
+        mail.setToAddresses(recipient);
+        mail.setBccAddresses(sender);
+        mail.setPlainTextBody(body);
+        List<Messaging.Email> lmail = new List<Messaging.Email>{mail};
+        Messaging.sendEmail(lmail);
+        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, 'Email sent. You\'ve been bcc\'d and should receive a copy soon.'));
+
+        return thispage;
+    }
+      //v2.0 - Section - Builds HTML output for email
+      public string summarizedHtml{
+        get{
+            
+            List<Questionnaire__c> Qans = [select id,Complexity_count__c,Opportunity__r.name,DBAs_on_Staff__c,
+            DBA_Service_Detail__c,Known_Frameworks__c ,What_type_of_DBA_Service__c,
+            DBAs_on_Staff_Detail__c,Have_you_experienced__c ,Experienced_Detail__c,Special_Business_Requirements__c,
+            Special_Business_Req_Detail__c,Expected_Activities__c,General_Environment_Detail__c,Datasize_of_Largest_MySQL__c,
+            Datasize_More_Info__c,Highest_Query_Rate__c,Highest_Query_Rate_Detail__c,Number_of_servers__c,
+            Data_Sharded__c ,Data_Sharded_More_Info__c,Backups_HA__c,Backups_HA_More_Detail__c,Past_Growth__c,
+            Past_Growth_Detail__c,Future_Growth__c,Future_Growth_Detail__c,Infrastructure_Detail__c from Questionnaire__c
+            where Id =:q1.Id limit 1];
+
+           
+           String QuesSendMail =
+       
+            '\n Prospect Name: ' + Qans[0].Opportunity__r.name +
+            '\n Salesforce Opportunity Object: https://login.salesforce.com/' + Qans[0].Opportunity__r.Id +
+            '\n Direct Link to Questionnaire: https://login.salesforce.com/apex/RDBA_Questionnaire?id=' + Qans[0].Id +    
+            '\n\n Total Points as Calculated by Salesforce: ' + Qans[0].Complexity_count__c +
+            '\n\n Question Detail:'+
+      
+            '\n\n' + questions[0] + '==> ' +Qans[0].DBAs_on_Staff__c  +  
+            '\n\n' + questions[1] + '==> ' +Qans[0].DBAs_on_Staff_Detail__c +
+            '\n\n' + questions[2] + '==> ' +Qans[0].Known_Frameworks__c +
+            '\n\n' + questions[3] + '==> ' +Qans[0].What_type_of_DBA_Service__c +
+            '\n\n' + questions[4] + '==> ' +Qans[0].DBA_Service_Detail__c+
+            '\n\n' + questions[5] + '==> ' +Qans[0].Have_you_experienced__c +
+            '\n\n' + questions[6] + '==> ' +Qans[0].Experienced_Detail__c +
+            '\n\n' + questions[7] + '==> ' +Qans[0].Special_Business_Requirements__c +
+            '\n\n' + questions[8] + '==> ' +Qans[0].Special_Business_Req_Detail__c +
+            '\n\n' + questions[9] + '==> ' +Qans[0].Expected_Activities__c +
+            '\n\n' + questions[10] + '==> ' +Qans[0].General_Environment_Detail__c +
+            '\n\n' + questions[11] + '==> ' +Qans[0].Datasize_of_Largest_MySQL__c +
+            '\n\n' + questions[12] + '==> ' +Qans[0].Datasize_More_Info__c +
+            '\n\n' + questions[13] + '==> ' +Qans[0].Highest_Query_Rate__c +
+            '\n\n' + questions[14] + '==> ' +Qans[0].Highest_Query_Rate_Detail__c +
+            '\n\n' + questions[15] + '==> ' +Qans[0].Number_of_servers__c +
+            '\n\n' + questions[16] + '==> ' +Qans[0].Data_Sharded__c +
+            '\n\n' + questions[17] + '==> ' +Qans[0].Data_Sharded_More_Info__c +
+            '\n\n' + questions[18] + '==> ' +Qans[0].Backups_HA__c +
+            '\n\n' + questions[19] + '==> ' +Qans[0].Backups_HA_More_Detail__c +
+            '\n\n' + questions[20] + '==> ' +Qans[0].Past_Growth__c +
+            '\n\n' + questions[21] + '==> ' +Qans[0].Past_Growth_Detail__c +
+            '\n\n' + questions[22] + '==> ' +Qans[0].Future_Growth__c +
+            '\n\n' + questions[23] + '==> ' +Qans[0].Future_Growth_Detail__c +
+            '\n\n' + questions[24] + '==> ' +Qans[0].Infrastructure_Detail__c;
+            
+            return QuesSendMail;
+            
+        }
+    }
+      
+          
+}
