@@ -1,0 +1,141 @@
+<apex:page standardController="Opportunity" extensions="rdbaqController_v2" title="Remote DBA Questionnaire">
+    <apex:form >
+        <apex:pageBlock title="Questionnaire for Managed Services - Remote DBA" >
+        <apex:pageMessages showDetail="false"  />
+            <apex:pageMessages ></apex:pageMessages>
+            
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!save}" /><apex:commandButton value="Send to Managed Services" action="{!sendemail}"/><apex:commandButton value="Cancel" action="{!cancel}" />
+            </apex:pageBlockButtons>
+            
+            <apex:PageBlockSection title="Instructions" columns="1">
+            
+            <p>Capture as much information about the opportunity as possible by filling out the questionnaire. The answers will inform Percona about the complexity of the prospective customer. Added complexity is represented by point values in most answer options (e.g., "+1").</p>
+
+            <p>Save your answers at any time by selecting the "Save" button on the questionnaire. When completed, select "Save" and view the "RDBA Tier" point value on the opportunity page.</p>
+
+            <p>If the value is less than 4 points, proceed to the Pricing Catalog to calculate a price. If it is 4 or more points, use the  "Send to Managed Services" button in the Questionnaire to route all information to the Managed Services team for review. They will get back to you promptly with a recommendation.</p>
+            
+            <p>A download to a clean, printable version of this Questionnaire can be found <a href="https://docs.google.com/a/percona.com/document/d/1fmq9Kj0LE8bWqQr5bNIfw0r5DZjSNVt7C7-2ALVPw3U/edit#heading=h.dv337fefyj2k">here</a>.</p>
+            
+            <p><b>Current Opportunity:</b> <apex:outputText value="{!Opportunity.name}" /></p>
+
+            </apex:PageBlockSection>
+            <apex:pageBlockSection title="Help me to understand your current business needs:" columns="1" >
+                <apex:pageBlockSectionItem labelStyle="width:25%;min-width:225px">
+                    <apex:outputLabel >{!questions[0]}</apex:outputLabel>
+                   
+                     <apex:inputCheckbox label="" value="{!q1.DBA_on_Staff__c}"/>               
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel >{!questions[1]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.DBAs_on_Staff_Detail__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel >{!questions[2]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Known_Frameworks__c}"></apex:inputTextarea>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[3]}</apex:outputLabel>
+                       <apex:inputField label="" value="{!q1.What_type_of_DBA_Service_2__c}"/>  
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[4]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.DBA_Service_Detail__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[5]}</apex:outputLabel>
+                     <apex:inputField label="" value="{!q1.Have_you_experienced__c}"/>  
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[6]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Experienced_Detail__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[7]}</apex:outputLabel>
+                     <apex:inputField label="" value="{!q1.Special_Business_Requirements__c}"/>  
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[8]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Special_Business_Req_Detail__c}"/>    
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[9]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Expected_Activities__c}"/>    
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Help me to understand your environment a little better:" columns="1" >
+            
+                <apex:pageBlockSectionItem labelStyle="width:25%;min-width:225px">         
+                    <apex:outputLabel >{!questions[10]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="6" cols="75" value="{!q1.General_Environment_Detail__c}" html-placeholder="What database do you use? MySQL, Percona Server, MariaDB, XtraDB Cluster or Galera, or others? MySQL on AWS EC2 instances or any other cloud provider? A DBaaS solution such as RDS for MySQL? TokuDB or another storage engine other than MyISAM or InnoDB. Linux distro, Windows or other operating system instances which interact with your application? Any special connectivity requirements such as a VPN for accessing your infrastructure remotely? Any special storage used such as a SAN?" />    
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[11]}</apex:outputLabel>
+                   <apex:inputField label="" value="{!q1.Datasize_of_Largest_MySQL__c}"/> 
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[12]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Datasize_More_Info__c}"/>    
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[13]}</apex:outputLabel>
+                    <apex:inputField label="" value="{!q1.Highest_Query_Rate__c}"/>    
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[14]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Highest_Query_Rate_Detail__c}"/>    
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel >{!questions[15]}</apex:outputLabel>
+                       <apex:inputField label="" value="{!q1.Number_of_servers__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel >{!questions[16]}</apex:outputLabel>
+                   <apex:inputCheckbox label="" value="{!q1.Data_Sharded__c }"/>              
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[17]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Data_Sharded_More_Info__c}"/>    
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[18]}</apex:outputLabel>
+                    <apex:inputField label="" value="{!q1.Backups_HA__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[19]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Backups_HA_More_Detail__c}"/>    
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Help me to understand your infrastructure growth:" columns="1" >
+            
+                <apex:pageBlockSectionItem labelStyle="width:25%;min-width:225px">    
+                    <apex:outputLabel >{!questions[20]}</apex:outputLabel>
+                    <apex:inputField label="" value="{!q1.Past_Growth__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[21]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Past_Growth_Detail__c}"/>    
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[22]}</apex:outputLabel>
+                     <apex:inputField label="" value="{!q1.Future_Growth__c}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >    
+                    <apex:outputLabel >{!questions[23]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Future_Growth_Detail__c}"/>    
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Is there any additional information that we should be aware of about your infrastructure?" columns="1" >
+                <apex:pageBlockSectionItem labelStyle="width:25%;min-width:225px">    
+                    <apex:outputLabel >{!questions[24]}</apex:outputLabel>
+                    <apex:inputTextarea label="" rows="2" cols="75" value="{!q1.Infrastructure_Detail__c}"/>    
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+           
+            <apex:outputText >* Questions marked with an asterisk are influencing the pricing tier to be used for this customer.</apex:outputText>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>
