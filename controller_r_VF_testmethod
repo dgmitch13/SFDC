@@ -1,0 +1,37 @@
+@isTest
+private class TestrdbaqController_v2{
+ 
+  //this variable skips oppCurPBTrigger
+   //Static Boolean QuestionSkip = true;
+  
+   public static testMethod void myUnitTest1()
+   {
+       PageReference pageRef = new PageReference('/apex/RDBA_Questionnaire_v2');
+       test.setCurrentPage(pageRef);
+       
+       Account acct = new Account(name = 'The Rat Pack'); 
+       Opportunity oppt = new Opportunity(name ='The Rat Pack',Account = acct,StageName = 'Test', CloseDate = Date.today());         
+
+       insert acct;
+       insert oppt; 
+       
+       ApexPages.currentPage().getParameters().put('id',oppt.id);
+       //Questionnaire__c q1 = [select id, name, Opportunity__c from Questionnaire__c where Opportunity__r.id =: oppt.id ];
+
+//Controller and controller class       
+       Apexpages.Standardcontroller controller = new Apexpages.Standardcontroller(oppt);
+       rdbaqController_v2 cont = new rdbaqController_v2(controller);
+       
+       cont.getCurrentRecord();
+       cont.getq1();
+       cont.sendemail();
+       cont.save();
+    
+ //Call VF pages      
+       String nextPage = controller.save().getUrl();
+     //  System.assertEquals('/apex/failure?error=noParam', nextPage);
+                             
+         nextPage = controller.save().getUrl();   
+   }
+
+  }
