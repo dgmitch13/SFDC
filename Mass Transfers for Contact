@@ -1,0 +1,18 @@
+List <Contact> lc = [Select Id, OwnerId, Account.OwnerId, Account.Name from 
+                    Contact where OwnerId = '005G0000005bDmrIAE' and 
+                    Account.Ownerid Not In ( '005G0000001qVEa','005A0000000Ysay','005G0000001qV75','005G0000001r76Q','005G0000001tITg') 
+                    and Account.Name <> '' limit 100];
+  	system.debug('<---->'+lc);
+For(Contact c : lc){
+	c.OwnerId = c.Account.OwnerId;
+  	system.debug('<--->'+ c.Account.Ownerid );   
+  	system.debug('<--->'+ c.Ownerid );
+}
+update lc;
+/*
+
+Take into considerations:
+Governing Limits
+validation rule
+triggers
+
