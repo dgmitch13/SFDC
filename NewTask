@@ -1,0 +1,13 @@
+  //v2.1 - Created a Task method called tActivity to capture email text body and apply to actvitiy history
+    public Task newTask(){
+         
+        Task tActivity = new Task();
+            tActivity.Status = 'Completed';
+            tActivity.Subject = 'Service Questionnaire';
+            tActivity.Description = this.summarizedHtml;
+            tActivity.WhatId = c.Opportunity__r.Id;
+                       
+        insert tActivity;
+       
+       return null;
+    }
