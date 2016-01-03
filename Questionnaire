@@ -1,0 +1,120 @@
+public class rdbaqController_v2 {
+
+    //private ApexPages.StandardController controller {get; set;}    
+    public Opportunity currentRecord;// {get;set;}
+
+    public Questionnaire__c q1; //{get;set;} //= new  Questionnaire__c();
+    public Questionnaire__c c;
+    
+    //This is sendmail section
+     private PageReference thispage;
+     
+          
+    public Opportunity getCurrentRecord()
+    {
+          currentRecord = [SELECT Id,(Select Id,[REMOVE BULK OF QUERY] from Service_Questionnaires__r limit 1)           
+          FROM Opportunity WHERE Id =:ApexPages.currentPage().getParameters().get('id')];
+          System.debug('*** ' + currentRecord);
+          c = currentRecord.Service_Questionnaires__r[0];
+          System.debug('*** ' + c);
+          return currentRecord;
+          
+        
+    }
+    
+    
+    public Questionnaire__c getq1()
+    {
+        getCurrentRecord();
+        q1 = currentRecord.Service_Questionnaires__r[0];
+        System.debug('*** ' + q1);
+        return q1;
+    
+    }
+    
+   
+    public rdbaqController_v2 (ApexPages.StandardController controller) 
+    {
+       
+    }
+     
+
+     //Retrieve existing records  
+     /*  
+     public List<Questionnaire__c> getQuestionExist(){
+       
+            return [[REMOVED QUERY FOR PRIVACY] where Opportunity__r.Id = :currentRecord.Id];          
+     }
+     */
+   
+      
+
+     
+  
+     public string[] questions {
+        get{
+            string[] q = new string[]{};
+            q.add('1a. Do you have COMPUTERS [EXAMPLE]? (+1 for No)');
+            [REMOVE SEVERAL LINES FOR PRIVACY]
+            return q;
+        }
+    }
+    
+        
+        public PageReference save() {
+            System.debug('*** what is c: ' + c);            
+            c.Have_you_experienced__c[EXAMPLE] = q1.Have_you_experienced__c[EXAMPLE];
+            [REMOVED SEVERAL LINES FOR PRIVACY]
+            
+            update c;
+            
+            PageReference t;
+            String s = URL.getSalesforceBaseURL().toExternalForm() + '/' + currentRecord.id;
+            t = new PageReference(s);
+            t.setRedirect(true);
+            return t;
+
+      }
+      
+        public PageReference sendemail(){
+        PageReference page = save();
+        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+        string subj = CurrentRecord.name + ': Questionnaire Quote Verification';
+        string[] recipient = new string[]{'DGM3299@YAHOO.COM'};
+        string[] sender = new string[]{System.UserInfo.getUserEmail()};
+        string body = this.summarizedHtml;
+        mail.setSubject(subj);
+        mail.setToAddresses(recipient);
+        mail.setBccAddresses(sender);
+        mail.setPlainTextBody(body);
+        List<Messaging.Email> lmail = new List<Messaging.Email>{mail};
+        Messaging.sendEmail(lmail);
+        ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.CONFIRM, 'Email sent. You\'ve been bcc\'d and should receive a copy soon.'));
+
+        return thispage;
+    }
+      
+      public string summarizedHtml{
+        get{
+            
+          List<Questionnaire__c> Qans = [QUERY REMOVED FOR PRIVACY REASONS limit 1];
+
+           
+           String donald =
+       
+            '\n Prospect Name: ' + Qans[0].Opportunity__r.name +
+            '\n Salesforce Opportunity Object: https://login.salesforce.com/' + Qans[0].Opportunity__r.Id +
+            '\n Direct Link to Questionnaire: https://login.salesforce.com/apex/Questionnaire?id=' + Qans[0].Id +    
+            '\n\n Total Points as Calculated by Salesforce: ' + Qans[0].Complexity_count__c +
+            '\n\n Question Detail:'+
+      
+            '\n\n' + questions[0] + '==> ' +Qans[0].EXAMPLE__c  +  
+            [REMOVE BULK OF CODE FOR PRIVACY]
+            
+            return donald;
+            
+        }
+    }
+      
+          
+}
