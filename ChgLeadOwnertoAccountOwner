@@ -1,0 +1,30 @@
+trigger ContactChange on Account (after update) {
+  
+       List<Account> acctsWithConts = [
+            select id, name, ownerid, owner.name,  
+                (select id, ownerid, owner.name, accountid, account.name  
+                            from Contacts)      
+                            from Account 
+                 ];     
+      
+        List<Contact> updateContact = new List<Contact>();
+        
+            for(Account a: acctsWithConts){
+                List<contact> contacts = new List<contact>();
+                contacts = a.contacts;
+         
+                system.debug('<--1-->'+contacts);
+                    
+             for(Contact c: contacts){ 
+                  if(a.ownerid != c.ownerid && a.id == c.accountId){
+                     system.debug('<--2-->'+ c.ownerid +' '+c.account.name);
+                     c.ownerid = a.ownerid;
+                     updateContact.add(c);
+                      
+                     system.debug('<--3-->'+updateContact.size()); 
+                     
+                                }
+                 }         
+         } 
+          update updateContact;
+ }
