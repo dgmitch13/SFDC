@@ -1,0 +1,207 @@
+trigger UpdateContactOnCampaign on Contact (after insert) {
+/**
+May 5, 2016 D.Mitchell version 1.0 - This Contact trigger function is to access custom labels for
+                                     Campaigns and Contact Lead Source to populate Campaigns with the 
+                                     the associated Contact LeadSource.
+    
+May 18,2016 D.Mitchell version 2.0 - Removed all SOQL for custom labels references. 
+    
+May 18,2016 D.Mitchell version 1.5 - Removed all SOQL for custom labels references. 
+May 19,2016 D.Mitchell version 2.0 - Pending - reconfigure code line from custom labels to custom settings (When refreshing 
+                                     environment, only the metadata will refresh, the custom setting does not carry over data ). 
+
+
+**/
+    /**Building List collection to hold custom labels leadsources**/
+    
+            Campaignmember [] campers = new list <Campaignmember>();
+            Contact [] updateContactLeadSource =  new list <Contact>();
+                        
+            List<string> proSources  = new List<String>();
+            List<string> dnSources   = new List<String>();
+            List<String> doSources   = new List<String>();
+            List<String> linkSources = new List<String>();
+            List<String> othSources  = new List<String>();
+            List<String> obSources   = new List<String>();     
+                 
+    /** Build string variables for custom labels for lead sources**/
+ 
+    
+    try{ 
+            String  Prospect;
+            Prospect = (System.Label.Prospect).Trim();
+            if(Prospect <> ''){
+                proSources = Prospect.split(';',0); } 
+            System.debug('*** proSources: ' + proSources);
+    } catch (DMLException e){}
+    
+    
+    try{ 
+            String  Datanyze;
+            Datanyze = (System.Label.Datanyze).Trim();
+            if(Datanyze <> ''){
+                dnSources = Datanyze.split(';',0); } 
+            System.debug('*** dnSources : ' + dnSources);
+    } catch (DMLException e){}
+    
+    
+    try{ 
+            String DiscoverOrg ;
+            DiscoverOrg = (System.Label.DiscoverOrg).Trim();
+            if(DiscoverOrg <> ''){
+                doSources = DiscoverOrg.split(';',0); } 
+            System.debug('*** doSources: ' + doSources);
+    } catch (DMLException e){}
+
+    try{ 
+            String LinkedIn;
+            LinkedIn = (System.Label.LinkedIn).Trim();
+            if(LinkedIn <> ''){
+                linkSources = LinkedIn.split(';',0); } 
+            System.debug('*** linkSources: ' + linkSources);
+    } catch (DMLException e){}
+    
+    try{ 
+            String Other ;
+            Other = (System.Label.Other).Trim();
+            if(Other <> ''){
+                othSources = Other.split(';',0); } 
+            System.debug('*** othSources: ' + othSources);
+    } catch (DMLException e){}
+
+    try{ 
+            String  Outbound_Calling;
+            Outbound_Calling = (System.Label.Outbound_Calling).Trim();
+            if(Outbound_Calling <> ''){
+                obSources = Outbound_Calling.split(';',0); } 
+            System.debug('*** obSources: ' + obSources);
+    } catch (DMLException e){}
+    
+    /**Building string variables to parse campaigns from Campaign Custom Labels **/
+    
+    String Prospect2 ='';     // 6 701E000000168XYIAY 2016-Sales List Upload - Prospect                             
+    String Other2 ='';       // 5 701E000000168TvIAI 2016-Sales List Upload - Other      
+    String LinkedIn2 ='';     // 4 701E000000168XdIAI 2016-Sales List Upload - LinkedIn    
+    String DiscoverOrg2 ='';  // 3 701E000000168TqIAI 2016-Sales List Upload - DiscoverOrg 
+    String Datanyze2 ='';     // 2 701E000000168TlIAI 2016-Sales List Upload - Datanyze  
+    String Outbound2 ='';     // 1 701E0000000pXTPIA2 2016-Outbound Calling  
+    String campaigns = '';    
+    integer Index1 = 0;  
+    integer Index2 = 18; 
+    integer count;       
+    
+        for(count = 0; count < 6; count++){
+            campaigns = (System.Label.Campaigns1).Trim();
+              system.debug('<-count-->'+count);
+            string strAllCamp = campaigns.substring(index1,index2);  
+            
+            if (count == 0 ){
+             Outbound2 = campaigns.substring(index1,index2);
+                system.debug('Outbound2: '+Outbound2);
+            }
+            if (count == 1 ){
+             Datanyze2 = campaigns.substring(index1,index2);
+                 system.debug('Datanyze2: '+Datanyze2);
+            }
+            if (count == 2 ){
+             DiscoverOrg2 = campaigns.substring(index1,index2);
+                 system.debug('DiscoverOrg2: '+DiscoverOrg2);
+            }
+            if (count == 3 ){
+             LinkedIn2 = campaigns.substring(index1,index2);
+                 system.debug('LinkedIn2: '+LinkedIn2);
+            }
+            if (count == 4 ){
+             Other2 = campaigns.substring(index1,index2);
+                 system.debug('Other2: '+Other2);
+            }
+            if (count == 5 ){
+             Prospect2 = campaigns.substring(index1,index2);
+                 system.debug('Prospect2: '+Prospect2);
+            }
+             system.debug('index1: '+index1);
+             system.debug('index2: '+index2);
+            index1 = index1+18;
+            index2 = index2+18;
+            
+            System.debug('what: '+strAllCamp);
+        }
+   
+
+    /**Populate Campaigns with actual Contacts **/
+   
+        for(Contact c: Trigger.new )   
+          {
+                       for(String m: proSources) //Prospect Campaign
+                         {  
+                          if (c.do_not_use_lead_source__c  == m)
+                             {
+                                id idprospect = id.ValueOf(Prospect2); 
+                                Campaignmember proMember = new Campaignmember(contactid = c.id, campaignid = idprospect);
+                                campers.add(proMember); 
+                                system.debug('<---0-->'+ proMember);              
+                             }               
+                          }
+                    
+           
+                       for(String m: dnSources)
+                        {
+                         if (c.do_not_use_lead_source__c  == m)
+                            {
+                                id iddatanyze = id.ValueOf(Datanyze2);
+                                Campaignmember DataMember = new Campaignmember(contactid = c.id, campaignid = iddatanyze);
+                                campers.add(DataMember); 
+                                system.debug('<--1--->'+ DataMember); 
+                            }
+                         }
+                     
+                     
+                       for(String m: doSources)
+                        {
+                         if (c.do_not_use_lead_source__c  == m)
+                            {
+                                id iddiscoverorg = id.ValueOf(DiscoverOrg2); 
+                                Campaignmember DiscMember = new Campaignmember(contactid = c.id, campaignid = iddiscoverorg);
+                                campers.add(DiscMember); 
+                                system.debug('<--2--->'+ DiscMember); 
+                            }
+                          }
+
+                       for(String m: linkSources)
+                       {
+                         if (c.do_not_use_lead_source__c  == m)
+                            {
+                                id idlinkedin = id.ValueOf(LinkedIn2);
+                                Campaignmember LinkMember = new Campaignmember(contactid = c.id, campaignid = idlinkedin);
+                                campers.add(LinkMember); 
+                                system.debug('<--3--->'+ LinkMember); 
+                            }
+                     }
+
+                       for(String m: othSources)
+                       {
+                         if (c.do_not_use_lead_source__c  == m)
+                            {
+                                id idother = id.ValueOf(Other2);
+                                Campaignmember OtherMember = new Campaignmember(contactid = c.id, campaignid = idother);
+                                campers.add(OtherMember); 
+                                system.debug('<--4--->'+ OtherMember); 
+                            }
+                     }
+     
+                       for(String m: obSources)
+                       {
+                         if (c.do_not_use_lead_source__c  == m)
+                            {
+                                id idoutbound = id.ValueOf(Outbound2);
+                                Campaignmember OutMember = new Campaignmember(contactid = c.id, campaignid = idoutbound );
+                                campers.add(OutMember); 
+                                system.debug('<--5--->'+ OutMember); 
+                            }
+                      }
+                            
+         }
+                                 insert campers;
+                                 system.debug('This is the campers insert data'+ campers);
+         
+  }
