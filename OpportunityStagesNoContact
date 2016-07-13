@@ -1,0 +1,36 @@
+/**
+5.15.2016 - Don Mitchell Version 1.0 - This code prevents users that selects the New Business record types between stages 3 - 7 witout
+a contact attached.  Once the contact has been added, the opportunity will save.
+**/
+trigger OpportunityStagesNoContact  on Opportunity (before insert, before update) 
+{
+                             
+ //This soql statment will only query New Business types       
+ //--RecordTypeId = 'New Business' (012E0000000oQpuIAE)                                         
+     List <OpportunityContactRole> OpptyCont = [Select o.id, o.Opportunity.RecordTypeid, o.OpportunityId From OpportunityContactRole o 
+                                                where o.Opportunity.RecordTypeId = '012E0000000oQpuIAE'
+                                                and o.opportunityId =: trigger.new];
+    
+ //this array list only those stages that should contain contacts   
+    String [] OpptyStages = new String [] {'Stage 3: Discovery Call Scheduled',
+                                           'Stage 4: Scope Session Scheduled',
+                                           'Stage 5: Onboarding Scheduled',
+                                           'Stage 6: Go-no-Go Scheduled',
+                                           'Stage 7: Implementing Validation Plan'
+                                           };
+       
+    for(Opportunity Opp: Trigger.new)
+    {  
+      
+          if(OpptyCont.size() == 0 && Opp.RecordTypeid == '012E0000000oQpuIAE')
+            {                    
+              for (String strStage : OpptyStages){  
+                  
+                 if(strStage == Opp.Stagename)
+                 {          
+                  Opp.addError('Please add at least one contact to this Opportunity to proceed.');
+                  }
+               } 
+            }   
+        }                                        
+}
