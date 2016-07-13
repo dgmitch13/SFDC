@@ -1,0 +1,35 @@
+AND 
+( 
+ISPICKVAL( Deal_Desk_Approval_Status__c, "Submitted for Approval"), 
+OR( 
+ISPICKVAL(StageName, "Stage 6: Go-no-Go Scheduled"), 
+ISPICKVAL(StageName, "Stage 7: Implementing Validation Plan"), 
+ISPICKVAL(StageName, "Stage 8: Confirmed Win / Negotiation"), 
+ISPICKVAL(StageName, "Stage 9: Order Management") 
+), 
+
+OR( 
+
+ISBLANK(Data_Volume_daily__c ), 
+ISBLANK(Number_of_Users__c ), 
+ISBLANK(Hot_Data_Retention_Days__c ), 
+ISBLANK(Cold_Retention__c ), 
+
+ISBLANK(TEXT(Edition_Type__c)), 
+ISBLANK(Contract_Effective_Date__c), 
+ISBLANK(Contract_End_Date__c), 
+ISBLANK(TEXT(Payment_Schedule__c)), 
+
+ISBLANK(Overage_Multiplier__c ), 
+ISBLANK(Service_Term_Length__c), 
+ISBLANK(TEXT(Agreement_Type__c)), 
+ISBLANK(List_Subscription_ACV__c), 
+ISBLANK(List_TCV__c ), 
+ISBLANK(Subscription_Discount__c ), 
+ISBLANK(PS_T_Discount__c), 
+ISBLANK(Total_Contract_Discount__c ), 
+ISBLANK(Net_Subscription_ACV__c ), 
+ISBLANK(Net_TCV__c ) 
+
+) 
+)
