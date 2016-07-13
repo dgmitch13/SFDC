@@ -1,0 +1,40 @@
+/*
+May 11, 2016 D.Mitchell Version 1.0 - This test method is for triggers "OpportunityStagesNoContact".  
+*/
+@isTest 
+  private class OpportunityStageTest{
+  
+        static testMethod void OpportunityStage(){     
+              
+           
+          Test.startTest();
+
+          //Build standard sObjects for testing 
+
+              Account acct = new Account(name = 'Independant' );      
+                 Insert acct;
+              Account a = [select id, name from account where name = 'Independant' limit 1];
+              
+              Contact con = new Contact (accountid = a.id, lastname = 'Jackson', firstname = 'Janet');
+                Insert con;
+              Contact c = [Select id from Contact where lastname = 'Jackson' and firstname = 'Janet'];  
+
+              Opportunity oppt = new Opportunity(name = 'July4', accountid = a.id, type = 'New Logo', StageName = 'Stage 2: Engaged Prospect', RecordTypeid = '012E0000000oQpuIAE', CloseDate = System.Today() );
+                Insert oppt;     
+                            
+              Opportunity op = [Select id from Opportunity where name = 'July4']; 
+                                                    
+              
+              OpportunityContactRole OpRole = new OpportunityContactRole(OpportunityId = op.id ,contactid = c.id, role = 'Business User', isPrimary = True);
+              Insert OpRole;
+                  
+              op.StageName = 'Stage 3: Discovery Call Scheduled';
+              update op;   
+                  
+           // Test that the trigger fired on blank Contact on OpportunityContactRole
+               System.assertEquals('Stage 3: Discovery Call Scheduled',op.StageName);                 
+                  
+
+          Test.stopTest();
+     }
+ }
