@@ -1,0 +1,53 @@
+public class ContactQueryAction_1
+//DM 2/12/16 version 1.00 class built for max score update on contact for account object in the process builder 
+//DM 2/25/16 Version 2.00 a complete class rebuild to bulkfy
+{
+  @InvocableMethod(label='Get Contacts Names and update account score' description='Returns the list of contact names corresponding to the specified account IDs.')
+  public static void getContactNames(List<ID> ids) {
+              
+         List<Account> accounts = new List<Account>();
+         Map<Id, account> myMap = new Map<Id, account>();
+         Map<Id, Contact> myContacts = new Map<Id, Contact>();
+         Set<Id> contactIds = new Set<Id>();
+         List<Account> updatedAccounts = new List<Account>();
+         
+         if (ids.size() > 0)
+         {
+             accounts = [select id, name,Max_Activity_Score__c,Max_Score_Contact_Name__c,
+                         (SELECT id, accountid, name, Activity_lead_score__c 
+                  FROM Contacts 
+                  WHERE Activity_lead_score__c <> null 
+                  order by Activity_lead_score__c desc limit 1) from Account
+                  where id =: ids];     
+       
+           for(account a: accounts)
+           {           
+             Contact c = new Contact();
+                 c = a.contacts;
+                 contactids.add(c.id);
+                     
+               system.debug('<---->'+ a.name + '-----' + c.name );          
+                 myMap.put(c.id, a);               
+                 myContacts.put(c.id, c);       
+               system.debug('<---->'+ myMap + '-----' + myContacts );          
+           }
+           
+           for(Id i: contactids)
+           {
+               Account acct = new Account();
+               contact cont = new Contact(); 
+               acct = myMap.get(i);
+               cont = myContacts.get(i);
+               
+              acct.Max_Activity_Score__c = cont.Activity_lead_score__c;
+              acct.Max_Score_Contact_Name__c= cont.id;
+    
+               System.debug('The account Id is ' + acct + '----------'+cont  );
+                updatedAccounts.add(acct);
+                
+           }
+          update updatedAccounts;
+           
+        }
+       }
+      }
