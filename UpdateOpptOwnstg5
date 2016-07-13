@@ -1,0 +1,35 @@
+/**
+July 2, 2016 D.Mitchell Version 1.0 - This trigger was built to update the current SDR Opportunity owner with the Account owner
+when the task activity stage reached 5.
+
+**/
+trigger UpdateOpptOwnstg5 on Task (after update) {
+
+        list<task> t = [select id, whatid,SDR_Meeting_Stages__c,
+                        Competition_SDR__c, Compelling_Event_Urgency__c
+                        from task where id =: trigger.new and 
+                        SDR_Meeting_Stages__c = 'Stage 5: Meeting Completed'];
+     if(t.size() > 0 ){
+        
+        set<ID> s = new set<ID>();
+        
+        for(task t2: t){
+            s.add(t2.whatid);        
+        }
+        
+        list<opportunity> x = [select id, account.ownerid, account.name,Competition__c
+                               from opportunity where id in: s];
+        list<opportunity> y = new list<opportunity>();                       
+        
+        for(Task t3: t){
+                               
+        for(Opportunity o:  x) {
+                         o.ownerid = o.account.ownerid;
+               
+                        y.add(o);
+            }                  
+     
+        }
+       Update y;
+     }
+   }
