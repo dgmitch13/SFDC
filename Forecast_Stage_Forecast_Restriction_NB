@@ -1,0 +1,36 @@
+OR( 
+
+AND( 
+NOT(ISPICKVAL(ForecastCategoryName,'Pipeline')), 
+OR( 
+ISPICKVAL(StageName,'Stage 1: Qualification'), 
+ISPICKVAL(StageName,'Stage 2: Meeting Completed SAL') 
+) 
+), 
+
+AND( 
+NOT(ISPICKVAL(ForecastCategoryName,'Best Case')), 
+OR( 
+ISPICKVAL(StageName,'Stage 3: Discovery Call Scheduled'), 
+ISPICKVAL(StageName,'Stage 4: Scope Session Scheduled'), 
+ISPICKVAL(StageName,'Stage 5: Onboarding Scheduled') 
+) 
+), 
+
+AND( 
+NOT(ISPICKVAL(ForecastCategoryName,'Commit')), 
+OR( 
+ISPICKVAL(StageName,'Stage 6: Go-no-Go Scheduled'), 
+ISPICKVAL(StageName,'Stage 7: Implementing Validation Plan'), 
+ISPICKVAL(StageName,'Stage 8: Confirmed Win / Negotiation') 
+) 
+), 
+
+AND( 
+NOT(ISPICKVAL(ForecastCategoryName,'Closed')), 
+OR( 
+ISPICKVAL(StageName,'Stage 9: Order Management'), 
+ISPICKVAL (StageName, 'Closed: Won') 
+) 
+) 
+)
