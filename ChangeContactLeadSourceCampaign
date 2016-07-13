@@ -1,0 +1,23 @@
+trigger ChangeContactLeadSourceCampaign on Contact (before insert) {
+/**
+May 5, 2016 D.Mitchell Version 1.0 - This Contact trigger has two functions: 1.Copy current Contact leadsource to 
+                                     Contact custom field do_not_use_lead_source__c for UpdateContactonCampaign processing.
+                                     2.Update the Contact leadsource field with a value 'Sales List Upload'.
+**/
+             String sLeadsource = 'Sales List Upload';
+             String sLeadSourceException = 'Outbound Calling';
+            
+             Map<String, Contact> UpdateCont = new Map<String, Contact>();
+            
+             for(Contact cCont: trigger.new )
+               { 
+               cCont.do_not_use_lead_source__c = cCont.leadsource;                 
+                  If(cCont.leadsource != sLeadSourceException)
+                     {
+                      cCont.leadsource = sLeadsource;
+                      UpdateCont.put(cCont.leadsource, cCont);
+                     }                  
+               system.debug('<---ChangeContactLeadSourceCampaign Trigger--->'+cCont.leadsource + ' '+ UpdateCont+ ' '+ cCont.do_not_use_lead_source__c);               
+               }   
+      
+          }
