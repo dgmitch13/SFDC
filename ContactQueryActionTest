@@ -1,0 +1,38 @@
+@isTest
+public class ContactQueryActionTest
+{
+     public static testMethod void myTest(){   
+     
+           ContactQueryAction_1 CQA = new ContactQueryAction_1();   
+     
+          Test.startTest();
+          
+                Account a = new Account(name = 'Trustme' );
+                insert a;
+
+                Account a2 = [select id from account where name = 'Trustme'];
+
+                List<Contact> c = new List<Contact>();
+                c.add(new contact(accountid = a2.id, lastname = 'Simpson', firstname = 'Homer' , Activity_lead_score__c = 12));
+                c.add(new contact (accountid = a2.id, lastname = 'Simpson', firstname = 'Bart', Activity_lead_score__c = 13));
+                
+                insert c;  
+                
+                system.debug('<------->'+a2);
+                              
+                list<id> call_id = new list<id>();
+                call_id.add(a2.id);
+                
+                system.debug('<------->'+call_id);
+                
+                ContactQueryAction_1.getContactNames(call_id);
+             
+          Test.stopTest();
+
+
+          
+     }
+     
+     
+             
+ }
