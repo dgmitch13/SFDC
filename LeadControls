@@ -1,0 +1,46 @@
+trigger LeadTransferSDROnly2 on Lead (before update) {
+ 
+ //Check to see if the user is an SDR, if not SDR user do nothing. 
+        id sdrProfile = userinfo.getProfileId();
+        boolean matched;
+                    
+        system.debug('This is the current profile '+ sdrProfile + ' Does it match this one : 00eE0000000e7ETIAY');
+        
+        if(sdrProfile == '00eE0000000e7ETIAY' ){
+         
+ 
+//Gives a list of SDR users with the Sumo SDR User profile       
+      
+         List<User> u = [select id, profileid from user 
+                        where profileid = '00eE0000000e7ETIAY'
+                        and isactive = true];                  
+      
+              for(Lead l: Trigger.new)
+              {
+                 Lead oldLead = Trigger.oldMap.get(l.id);
+                 
+                 system.debug('This is the current lead owner '+ oldLead.ownerid);
+                 system.debug('This is the possible new lead owner '+ l.ownerid);
+                 
+                 if (oldLead.ownerid != l.ownerid ){
+                 
+                         for (user u2: u){
+                            
+                           matched = (u2.id == l.ownerid);
+                           
+                           if (matched == true){
+                             break;
+                             }
+                              
+                           }
+                             If (matched == false){
+                                 l.addError('This current user is not a SDR user. Please contact SDR manager is this is incorrect.');
+                             
+                             }
+                           
+                      break;       
+                    }      
+              }
+                    
+     }       
+ }
