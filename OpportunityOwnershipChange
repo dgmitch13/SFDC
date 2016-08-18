@@ -1,0 +1,13 @@
+AND(
+ISCHANGED(OwnerId),
+PRIORVALUE(OwnerId)<> $User.Id,
+ OR(
+    $User.ProfileId = '00eE0000000ewYG', 
+    $User.ProfileId ='00e1b000000HgbU',
+    $User.ProfileId ='00eE0000000ex9W',
+    $User.ProfileId ='00eE0000000eXTf',
+    $User.ProfileId ='00eE0000000d2G5',
+    $User.ProfileId ='00eE0000000e7ET'
+     ),
+$Profile.Name <> 'System Administrator'
+)
