@@ -1,0 +1,43 @@
+trigger CreatePartnerOppCommunity on Opportunity (before insert) {
+//Recordtype from Sandbox
+
+            List<Opportunity> o = [select id, name, account.id, stagename,partnerAccount__c from
+                                   opportunity where id =: Trigger.new 
+                                   and partneraccount__c != null
+                                   and recordtypeid = '012E0000000oQpuIAE'];
+                                   
+           system.debug('This is it '+ o);                        
+                                   
+ //                List<Opportunity> opptPost = new List<Opportunity>();
+   
+       
+ //Kat Generic Partner Account (Holds All Registered Deals) in sandbox.
+ //Sumologic standard stage 1 - Stage 1: Meeting Scheduled in the sandbox.       
+           ID partnerAccount = '0011b000004FJueAAG' ;          
+           String partnerStage = 'Stage 1: Meeting Scheduled' ;
+                                  
+           for (Opportunity o2: o){
+           
+             o2.partnerAccount__c = partnerAccount; 
+             o2.stagename = partnerStage;
+          //    opptPost.add(o2);
+           
+           }
+           
+   
+       
+ /**
+           ID partnerAccount = '0011b000004FJueAAG' ;          
+           String partnerStage = 'Stage 1: Meeting Scheduled' ;
+             
+           for(Opportunity o2: trigger.new){
+              o2.Account.id = partnerAccount; 
+              o2.stagename = partnerStage;
+           //   opptPost.add(o2);
+           
+           }
+ **/     
+          
+       
+            
+}
