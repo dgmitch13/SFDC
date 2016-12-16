@@ -1,0 +1,109 @@
+<apex:page standardController="Opportunity" tabStyle="account" >
+    <apex:includeScript value="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"/>
+    <script>
+    $(document).ready(function() {
+        $('[id*=userLookup] select').hide();
+    });
+    </script>
+    
+    <apex:form > 
+        
+        <apex:pageblock >
+            <apex:pageBlockButtons >
+                <p> <apex:commandButton value="Quick Save" action="{!quicksave}"  /> </p>
+                <h1 style="color:red;"><b><p>Remember to "Quick Save" your work before leaving page.</p></b></h1>
+                <h1 style="color:red;"><b><p>Save Opportunity new stage first, before "Quick Save".</p></b></h1>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection title="Qualification and Discovery" collapsible="false" columns="2">    
+                <apex:inputField value="{!Opportunity.Identify_Pain__c}"/>
+                <apex:inputField value="{!Opportunity.MEDDIC_Score__c}"/> 
+                
+                <apex:inputField value="{!Opportunity.Identified_Pain__c}"/>
+                
+                
+                <apex:inputField value="{!Opportunity.Next_Step_Date_Sales__c}"/>                                                                   
+                <apex:inputField value="{!Opportunity.Metrics__c}"/>  
+                <apex:inputField value="{!Opportunity.Next_Step_Sales__c}"/>  
+                <apex:inputField value="{!Opportunity.Metric__c}"/>
+                <tr>      
+                    <td><apex:inputField value="{!Opportunity.Contact_Champion__c}"/></td>  
+                    <td><apex:inputField value="{!Opportunity.Champion__c}"/></td>
+                </tr>    
+                
+            </apex:pageBlockSection>
+        </apex:pageblock>
+        
+        <apex:pageblock >   
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Quick Save" action="{!quicksave}"  />
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection title="Decision Criteria: Business Requirements" collapsible="false" columns="2" >
+                <apex:inputField value="{!Opportunity.Business_Requirements__c}"/>
+                <apex:inputField value="{!Opportunity.Decision_Criteria__c}"/>
+                <apex:inputField value="{!Opportunity.Competition__c}"/>    
+                <apex:inputField value="{!Opportunity.RFP_Planned__c}"/>
+                
+            </apex:pageBlockSection>
+        </apex:pageblock>
+        
+        <apex:pageblock >   
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Quick Save" action="{!quicksave}"  />
+                <h1 style="color:red;"><b><p>Remember to "Quick Save" your work before leaving page.</p></b></h1>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection title="Decision Criteria: Technical Requirements" collapsible="false" columns="2"  >
+                <apex:inputField value="{!Opportunity.EvalStartDate__c}"/>
+                <apex:inputField value="{!Opportunity.Evaluation_Type__c}"/>
+                <apex:inputField value="{!Opportunity.Eval_End_Date__c}"/>
+                <apex:inputField value="{!Opportunity.Test_Plan_Uploaded__c}"/>  
+                <apex:inputField value="{!Opportunity.SE_Technical_Concerns__c}"/>
+                <apex:inputField value="{!Opportunity.Use_Case_s__c}"/>
+                <apex:inputField value="{!Opportunity.Use_Case_Details__c}"/> 
+                <apex:inputField value="{!Opportunity.Infrastructure__c}"/>
+                <apex:inputHidden value="{!Opportunity.VF_filler_field_1__c}"/>
+                <apex:inputField value="{!Opportunity.Customer_Environment__c} "/>            
+            </apex:pageBlockSection>
+        </apex:pageblock>
+        
+        <apex:pageblock >   
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Quick Save" action="{!quicksave}"  />
+                <!--
+<h1 style="color:red;"><b><p>Remember to "Quick Save" your work before leaving page.</p></b></h1>
+-->
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection title="Decision Process: Steps to Close" collapsible="false" columns="2"  >
+                
+                <apex:inputField value="{!Opportunity.Business_Process__c}" /> 
+                <apex:inputField value="{!Opportunity.Decision_Process__c}"/> 
+                <apex:inputField value="{!Opportunity.Contact_Economic_Buyer__c}"/> 
+                <apex:inputField value="{!Opportunity.Economic_Buyer__c}"/>
+                <apex:inputField value="{!Opportunity.Sumo_Executive_Sponsor__c}" id="userLookup"/>
+                
+                <apex:inputHidden value="{!Opportunity.VF_filler_field_1__c}"/>  
+                
+                <apex:inputHidden value="{!Opportunity.VF_filler_field_1__c}"/> 
+                
+            </apex:pageBlockSection> 
+            
+            <apex:pageBlockSection collapsible="false" columns="2"  >
+                <apex:inputField value="{!Opportunity.Budget_Approval_Process__c} " />  
+                <apex:inputField value="{!Opportunity.Budget_Approval_Date__c}"/>        
+                <apex:inputField value="{!Opportunity.Legal_Process__c}   "/>
+                <apex:inputField value="{!Opportunity.Legal_Approval_Date__c}  "/>                   
+                <apex:inputField value="{!Opportunity.Procurement_Process__c}"/>
+                <apex:inputField value="{!Opportunity.Procurement_Complete_Date__c}"/>
+                <apex:inputField value="{!Opportunity.Signature_Process__c}"/>          
+                <apex:inputField value="{!Opportunity.Signature_Complete_Date__c}"/>    
+                
+                
+            </apex:pageBlockSection>
+            
+            
+        </apex:pageblock>
+    </apex:form>   
+</apex:page>
