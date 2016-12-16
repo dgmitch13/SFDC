@@ -1,0 +1,193 @@
+<!--
+7.27.2016 - Don Mitchell Version 1.0 - This VF page was developed to capture for the Close Plan Opportunity data that will generate
+                                       a VF page that will request user interaction to save VF page as a Opportunity attachment on the Google Doc, Notes
+                                       & attachments section.  The controller that called is pdfOpportunity.
+-->
+<apex:page standardController="Opportunity" extensions="pdfOpportunity" standardStylesheets="false" >
+  <!--
+  <apex:stylesheet value="{!URLFOR($Resource.testcss, 'testcss.css')}" />
+  -->
+  
+  <apex:form >
+      <p style="text-align:center" > 
+         <apex:image value="{!$Resource.SumologicLogo}" style="text-align: center;"/>
+      </p>
+      
+ <apex:pageblock >
+      
+      
+      <apex:pageBlockButtons >
+          <apex:commandButton action="{!savePdf}" value="Save PDF" immediate="true"/>
+      </apex:pageBlockButtons>       
+     
+      <h3 style="text-align:center;color:#000066;font-weight:bold;" > {!Opportunity.Owner.name}'s Close Plan for {!Opportunity.name} </h3>
+      
+      <!-- 
+     <table style="width:100%">
+          <tr>
+            <td width="30%"> <b> Account: </b> </td>
+            <td width="70%">{!Opportunity.Account.name}</td>
+          </tr>
+          <tr>
+            <td> <b> Stage:</b> </td>
+            <td> {!Opportunity.StageName} </td>
+          </tr>
+    </table>
+    -->
+     
+     <p> <b> Account: </b> &nbsp; {!Opportunity.Account.name} <br></br>
+         <b> Stage: </b> &nbsp; {!Opportunity.StageName} <br></br>
+         <b> Forecast: </b> &nbsp; {!Opportunity.ForecastCategory} <br></br>
+         <b> Closed Date: </b> &nbsp; <apex:outputField label="Closed Date: " value="{!Opportunity.closedate}"/> <br></br>     
+         <b> Amount: </b> &nbsp; <apex:outputField label="Amount: " value="{!Opportunity.Amount}"/> <br></br>     
+       
+      
+     
+     </p>
+    
+    <!--
+    <apex:pageBlockSection columns="2">  
+     <apex:pageBlockSectionItem dataStyle="width:46%" labelStyle="width:50%" > 
+     <apex:outputLabel > Closed Date: </apex:outputLabel>
+     <apex:outputText label="Close Date: " value="{0, date, MMMM d','  yyyy}">
+     <apex:param value="{!Opportunity.closedate}"/> 
+     </apex:outputText>     
+     </apex:pageBlockSectionItem>
+     </apex:pageBlockSection>
+     
+     <apex:pageBlockSection columns="2">  
+     <apex:pageBlockSectionItem dataStyle="width:46%" labelStyle="width:50%" > 
+     <apex:outputLabel >Amount: </apex:outputLabel>
+     <apex:outputText label="Amount: " value="{0, Number, Currency}">
+     <apex:param value="{!Opportunity.Amount}"/> 
+     </apex:outputText>     
+     </apex:pageBlockSectionItem>
+     </apex:pageBlockSection>
+     -->
+    
+     
+     
+     <!-- This is test code which I have commented out for now
+     <apex:pageBlockSection columns="1">          
+                 <apex:outputText label="Account: " value="{!Opportunity.Account.name}"/>
+                 <apex:outputText label="Close Date: " value="{0, date, MMMM d','  yyyy}">
+                   <apex:param value="{!Opportunity.closedate}" /> 
+                 </apex:outputText>
+                 <apex:outputText label="Stage: "        value="{!Opportunity.StageName}"/>
+                 <apex:outputText label="Forecast: " value="{!Opportunity.ForecastCategory}"/>
+                 <apex:outputText label="Amount:" value="{0, Number, Currency}">
+                 <apex:param value="{!Opportunity.Amount}" />
+                 </apex:outputText>
+     
+      </apex:pageBlockSection>
+       -->
+       
+      <h3 style="text-align:center;color:#000066;font-weight:bold;" >MEDDIC in Review</h3>  
+      
+      <p style="text-align:left;color:#3333cc;font-weight:bold;font-size:110%;" > Qualification and Discovery Details </p> 
+      
+      <p> <b> Metrics: </b> &nbsp;  {!Opportunity.Metrics__c}  <br></br>
+          <b> Pain: </b> &nbsp; {!Opportunity.Identify_pain__c} <br></br>
+          <b> Champion: </b> &nbsp; <apex:outputField label="Champion: " value="{!Opportunity.Contact_Champion__c}"/> <br></br> 
+          <b> Next Steps: </b> &nbsp; <apex:outputField label="Next Steps: " value="{!Opportunity.Next_Step_Sales__c}"/> <br></br>  
+          <b> Next Steps Date: </b> &nbsp; <apex:outputField label="Next Steps Date: " value="{!Opportunity.Next_Step_Date_Sales__c}"/> <br></br>      
+      </p>
+      
+           <!-- RH: I have temporarily commented out this code
+            <apex:pageBlockSection title="Qualification and Discovery Details" columns="1" >
+                                    
+                   <apex:outputText label="Metrics: "         value="{!Opportunity.Metrics__c}"/> 
+                   <apex:outputText label="Pain: " value="{!Opportunity.Identify_pain__c}"/>
+                   <apex:outputField label="Champion: "        value="{!Opportunity.Contact_Champion__c}"/>
+            
+            </apex:pageBlockSection>
+           -->
+           
+           
+      <p style="text-align:left;color:#3333cc;font-weight:bold;font-size:110%;" > Business Requirements </p> 
+      
+      <p> <b> Business Requirements: </b> &nbsp;&nbsp;&nbsp;&nbsp; {!Opportunity.Business_Requirements__c} <br></br>
+          <b> Competition: </b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {!Opportunity.Competition__c} <br></br>     
+      </p>
+           
+      <p style="text-align:left;color:#3333cc;font-weight:bold;font-size:110%;" > Technical Requirements </p> 
+      
+      <p> <b> Evaluation Type: </b> &nbsp; {!Opportunity.Evaluation_Type__c} <br></br>
+          
+          <b> Test Plan Uploaded: </b> &nbsp; {!Opportunity.Test_Plan_Uploaded__c} <br></br>  
+          
+          <b> SE Technical Concerns: </b> &nbsp; {!Opportunity.SE_Technical_Concerns__c} <br></br>  
+          
+          <b> Use Case(s): </b> &nbsp; {!Opportunity.Use_Case_s__c} <br></br>
+          
+          <b> Use Case Details: </b> &nbsp; {!Opportunity.Use_Case_Details__c} <br></br><br></br>   
+          
+          <b> Evaluation Start Date: </b> &nbsp; <apex:outputField label="Evaluation Start Date: " value="{!Opportunity.EvalStartDate__c}"/> <br></br>
+          
+          <b> Evaluation End Date: </b> &nbsp; <apex:outputField label="Evaluation End Date: " value="{!Opportunity.Eval_End_Date__c}"/> <br></br>
+           
+               
+      </p>
+           
+           <!--
+           <apex:pageBlockSection title="Business Requirements" columns="1">
+                <apex:outputText label="Biz. Req.: " value="{!Opportunity.Business_Requirements__c}"/>
+                <apex:outputText label="Competition: "           value="&nbsp;{!Opportunity.Competition__c}"/>
+            </apex:pageBlockSection>
+
+           <apex:pageBlockSection title="Technical Requirements" columns="1"> 
+                <apex:outputText label="Evaluation Type: "          value="{!Opportunity.Evaluation_Type__c}"/>
+                <apex:outputText label="Evaluation Start Date: "    value="{!Opportunity.EvalStartDate__c}"/>
+                <apex:outputText label="Evaluation End Date: "      value="{!Opportunity.Eval_End_Date__c}"/>                
+                <apex:outputText label="Test Plan Uploaded? "  value="{!Opportunity.Test_Plan_Uploaded__c}"/>  
+                <apex:outputText label="SE Technical Concerns:  "   value="{!Opportunity.SE_Technical_Concerns__c}"/>
+                <apex:outputText label="Use Case(s): "              value="{!Opportunity.Use_Case_s__c}"/>
+                <apex:outputText label="Use Case Details: "         value="{!Opportunity.Use_Case_Details__c}"/>
+            </apex:pageBlockSection>
+            -->
+
+      <p style="text-align:left;color:#3333cc;font-weight:bold;font-size:110%;" > Steps To Close </p> 
+      
+      <p> <b> Economic Buyer: </b> &nbsp;<apex:outputField label="Economic Buyer: " value="{!Opportunity.Contact_Economic_Buyer__c}"/> <br></br>
+          <b> Budget Approval Process: </b> &nbsp; {!Opportunity.Budget_Approval_Process__c} <br></br>          
+          <b> Budget Approval Date: </b> &nbsp;<apex:outputField label="Budget Approval Date: " value="{!Opportunity.Budget_Approval_Date__c}"/> <br></br>
+           
+          <b> Legal Approval Process: </b> &nbsp; {!Opportunity.Legal_Process__c} <br></br>          
+          <b> Legal Approval Date: </b> &nbsp;<apex:outputField label="Legal Approval Date: " value="{!Opportunity.Legal_Approval_Date__c}"/> <br></br>
+
+          <b> Procurement Process: </b> &nbsp; {!Opportunity.Procurement_Process__c} <br></br>          
+          <b> Procurement Date: </b> &nbsp; <apex:outputField label="Procurement Date: " value="{!Opportunity.Procurement_Complete_Date__c}"/> <br></br>
+ 
+          <b> Signature Process: </b> &nbsp; {!Opportunity.Signature_Process__c} <br></br>          
+          <b> Signature Date: </b> &nbsp; <apex:outputField label="Procurement Date: " value="{!Opportunity.Signature_Complete_Date__c}"/> <br></br>
+
+      </p>
+
+           <!-- RH: I temporarily commented out this code 
+           <apex:pageBlockSection title="Steps to Close" columns="1">
+                <apex:outputField label="Economic Buyer: "            value="{!Opportunity.Contact_Economic_Buyer__c}"/>
+                <apex:outputText label="Budget Approval Process: "  value="{!Opportunity.Budget_Approval_Process__c}"/>
+                <apex:outputText label="Budget Approval Date: "      value=" {!Opportunity.Budget_Approval_Date__c}"/>
+                
+                <apex:outputText label="Legal Approval Process: "   value="{!Opportunity.Legal_Process__c}"/>
+                <apex:outputText label="Legal Approval Date: "       value="{!Opportunity.Legal_Approval_Date__c}"/>
+                
+                <apex:outputText label="Procurement Process: "      value="{!Opportunity.Procurement_Process__c}"/>
+                <apex:outputText label="Procurement Date: "          value="{!Opportunity.Procurement_Complete_Date__c}"/>
+                
+                <apex:outputText label="Signature Process: "  value="{!Opportunity.Budget_Approval_Process__c}"/>
+                <apex:outputText label="Signature Date: "            value="{!Opportunity.Budget_Approval_Date__c}"/>
+                
+                <apex:outputText ></apex:outputText>
+            </apex:pageBlockSection> 
+             --> 
+       
+       
+       
+       
+       </apex:pageBlock>
+      
+    </apex:form> 
+    
+</apex:page>
+
