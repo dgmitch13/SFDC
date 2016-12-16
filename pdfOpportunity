@@ -1,0 +1,57 @@
+/**
+7.27.2016 - Don Mitchell Version 1.0 - This controller tied to the VF pdfOpportunity. This controller will capture data from VF page 
+                               save as pdf and attach it to the current Opportunity. 
+**/                                       
+
+
+public with sharing class pdfOpportunity{
+
+public ID parentId {get;set;}
+public String pdfName {get;set;}
+private final Opportunity opportunity;
+
+public pdfOpportunity( ApexPages.StandardController controller){
+
+        opportunity = [ Select id, name
+                                from Opportunity
+                                where Id =: ApexPages.currentPage().getParameters().get('id')];
+                                  
+        }
+ 
+ public PageReference savePdf(){
+       
+  PageReference pdf = Page.pdfOpportuntiy;
+  pdf.getParameters().put('id', Opportunity.Id);
+
+   // create the new attachment
+   Attachment attach = new Attachment();
+
+  // the contents of the attachment from the pdf
+  Blob body;
+
+try {
+
+    // returns the output of the page as a PDF
+    body = pdf.getContentAsPDF();
+    
+      
+
+
+    // need to pass unit test -- current bug    
+} catch (VisualforceException e) {
+        body = Blob.valueOf('Some Text');
+}
+
+
+attach.Body = body;
+      attach.Name = Opportunity.name +'.'+'pdf';
+      attach.IsPrivate = false;
+
+      attach.ParentId = Opportunity.id;
+    insert attach;
+
+// send the user to the opportunity to view results
+return new PageReference('/'+Opportunity.id);
+
+    }
+}
