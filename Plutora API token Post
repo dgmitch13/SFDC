@@ -1,0 +1,51 @@
+Public class PlutoraToken{
+    public string token;
+    
+    Public void PlutoraCalloutToken(){
+            String c = '';
+        
+            /**Get Plutora Token (POST) **/
+            Http http = new Http();
+            HttpRequest request = new HttpRequest();
+            request.setEndpoint('https://usoauth.plutora.com/oauth/token');
+            request.setMethod('POST');
+            request.setHeader('Content-Type','application/x-www-form-urlencoded');
+            //request.setHeader('Content-Type', 'application/json;charset=UTF-8');
+            // Set the body as a JSON object
+            
+            request.setBody(
+              'client_id=NOF4SKWGBPQEDIIKUIZMNHMMFA&client_secret=5UEOFKBCQ24UHMLPTDRJLGJX2E&grant_type=password&username=service@plutora.com&password=AUASKDMOASDwqssd'
+            );
+            
+            HttpResponse response = http.send(request);
+            system.debug('This is the request '+ response);
+            // Parse the JSON response
+                            
+            if (response.getStatusCode()!= 201) {
+                System.debug('The status code returned was not expected: ' + 
+                             response.getStatusCode() + ' ' + response.getStatus()+ ' '+response.getBody());
+            } else {
+                System.debug(response.getBody());
+            }
+            
+            system.debug('This is the body '+ response.getBody());
+            c = response.getBody();
+            system.debug('This is a string '+ c.length());
+            
+            /**Token output to string variable c **/
+           
+            c = c.substring(16);
+            c = c.substringbetween('"');
+            c = 'bearer ' + c;
+            token = c;      
+        
+            system.debug('Token Ready to pass  '+ c);     
+      }    
+    
+    
+    public String PlutoraToken()
+    {       
+        return token;
+    }
+    
+}
