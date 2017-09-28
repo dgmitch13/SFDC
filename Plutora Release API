@@ -1,0 +1,36 @@
+/**Build call to classes and methods to return token **/
+String me;
+PlutoraToken x = new PlutoraToken();
+x.PlutoraCalloutToken();
+me = x.PlutoraToken();
+//me = 'authorization: '+ me;
+System.debug('Whats it all about '+ me); 
+
+/**Pass to Plutora Release (GET) **/
+
+Http http1 = new Http();
+HttpRequest request1 = new HttpRequest();
+request1.setEndpoint('https://usapi.plutora.com/releases');
+request1.setMethod('GET');
+//request.setHeader('Content-Type','application/x-www-form-urlencoded');
+request1.setHeader('authorization',me);
+
+// Set the body as a JSON object
+
+//request1.setBody(
+  //'Authorization ='+ me 
+//    me
+//);
+ 
+HttpResponse response1 = http1.send(request1);
+system.debug('This is the request '+ response1);
+// Parse the JSON response
+                
+if (response1.getStatusCode()!= 201) {
+    System.debug('The status code returned was not expected: ' + 
+                 response1.getStatusCode() + ' ' + response1.getStatus()+ ' '+response1.getBody());
+} else {
+    System.debug(response1.getBody());
+}
+
+
