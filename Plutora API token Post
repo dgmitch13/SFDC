@@ -1,5 +1,11 @@
 Public class PlutoraToken{
-    public string token;
+    Public String token;
+    
+    Public String PlutoraPushToken()
+    {   
+        PlutoraCalloutToken();
+        return token;
+    }
     
     Public void PlutoraCalloutToken(){
             String c = '';
@@ -33,7 +39,7 @@ Public class PlutoraToken{
             system.debug('This is a string '+ c.length());
             
             /**Token output to string variable c **/
-           
+          
             c = c.substring(16);
             c = c.substringbetween('"');
             c = 'bearer ' + c;
@@ -41,11 +47,5 @@ Public class PlutoraToken{
         
             system.debug('Token Ready to pass  '+ c);     
       }    
-    
-    
-    public String PlutoraToken()
-    {       
-        return token;
-    }
     
 }
