@@ -8,8 +8,7 @@ public class rdbaqController_v2 {
     
     //This is sendmail section
      private PageReference thispage;
-     
-          
+             
     public Opportunity getCurrentRecord()
     {
           currentRecord = [SELECT Id,(Select Id,[REMOVE BULK OF QUERY] from Service_Questionnaires__r limit 1)           
@@ -17,12 +16,9 @@ public class rdbaqController_v2 {
           System.debug('*** ' + currentRecord);
           c = currentRecord.Service_Questionnaires__r[0];
           System.debug('*** ' + c);
-          return currentRecord;
-          
-        
+          return currentRecord;       
     }
-    
-    
+      
     public Questionnaire__c getq1()
     {
         getCurrentRecord();
@@ -32,13 +28,11 @@ public class rdbaqController_v2 {
     
     }
     
-   
     public rdbaqController_v2 (ApexPages.StandardController controller) 
     {
        
     }
      
-
      //Retrieve existing records  
      /*  
      public List<Questionnaire__c> getQuestionExist(){
@@ -47,11 +41,7 @@ public class rdbaqController_v2 {
      }
      */
    
-      
-
-     
-  
-     public string[] questions {
+    public string[] questions {
         get{
             string[] q = new string[]{};
             q.add('1a. Do you have COMPUTERS [EXAMPLE]? (+1 for No)');
@@ -59,8 +49,7 @@ public class rdbaqController_v2 {
             return q;
         }
     }
-    
-        
+            
         public PageReference save() {
             System.debug('*** what is c: ' + c);            
             c.Have_you_experienced__c[EXAMPLE] = q1.Have_you_experienced__c[EXAMPLE];
@@ -95,10 +84,8 @@ public class rdbaqController_v2 {
     }
       
       public string summarizedHtml{
-        get{
-            
+        get{    
           List<Questionnaire__c> Qans = [QUERY REMOVED FOR PRIVACY REASONS limit 1];
-
            
            String donald =
        
@@ -111,10 +98,7 @@ public class rdbaqController_v2 {
             '\n\n' + questions[0] + '==> ' +Qans[0].EXAMPLE__c  +  
             [REMOVE BULK OF CODE FOR PRIVACY]
             
-            return donald;
-            
+            return donald;  
         }
-    }
-      
-          
+    }         
 }
