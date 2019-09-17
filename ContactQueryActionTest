@@ -1,4 +1,5 @@
 @isTest
+//this is comment for the segment to capture
 public class ContactQueryActionTest
 {
      public static testMethod void myTest(){   
