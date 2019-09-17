@@ -1,5 +1,5 @@
 @isTest
-//this is comment for the segment to capture
+//this is a test of a test to capture data in the segment
 public class ContactQueryActionTest
 {
      public static testMethod void myTest(){   
